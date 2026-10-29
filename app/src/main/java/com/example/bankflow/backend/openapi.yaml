@@ -1,0 +1,648 @@
+openapi: 3.0.3
+info:
+  title: BankFlow API
+  version: 1.0.0
+  description: |
+    Demo banking API. The backend is the source of truth for every balance.
+
+    **Money** is always an integer in minor units (cents). `100000` means $1,000.00. Floats are rejected.
+
+    **Authentication.** `POST /auth/register` or `/auth/login` returns a short-lived access token (JWT)
+    and an opaque refresh token. Send the access token as `Authorization: Bearer <token>`.
+    When a call fails with `TOKEN_EXPIRED`, call `/auth/refresh` and retry. Refresh tokens rotate:
+    each one works once. Replaying a used one revokes every session of that user.
+
+    **Errors** always have the shape `{ "error": { "code", "message", "details?" } }`.
+    Clients should switch on `code`, never on `message`.
+
+    **Duplicate-transfer protection.** `POST /transfers` requires an `Idempotency-Key` header (a UUID).
+    Generate one key per user intent and reuse it when retrying after a timeout or network failure.
+    Use a NEW key for a genuinely new attempt, including after a failed one.
+
+    **Demo logins** (after `npm run seed`): `alice@example.com` and `bob@example.com`, password `Passw0rd123`.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development (Android emulator uses http://10.0.2.2:3000/api/v1)
+
+tags:
+  - name: Auth
+  - name: Accounts
+  - name: Transfers
+  - name: System
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Liveness and database check
+      servers:
+        - url: http://localhost:3000
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: ok }
+        '503':
+          description: Database unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string, example: unavailable }
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Create a user, a checking account with a welcome bonus, and a session
+      description: Rate limited per IP (default 10 attempts per 15 minutes, shared with login).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registered and signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '409':
+          description: Email already registered (`EMAIL_TAKEN`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Sign in with email and password
+      description: |
+        A wrong password and an unknown email return the same `INVALID_CREDENTIALS` response,
+        so the API never reveals which emails are registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401':
+          description: Wrong email or password (`INVALID_CREDENTIALS`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Exchange a refresh token for a new token pair (rotation)
+      description: |
+        The submitted refresh token is revoked and a new pair is returned.
+        If a token that was already used is submitted again, ALL of the user's sessions are revoked
+        and `INVALID_REFRESH_TOKEN` is returned. The app must then send the user back to login.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: New token pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401':
+          description: Refresh token unknown, expired, or already used (`INVALID_REFRESH_TOKEN`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke the current session
+      description: Other devices stay signed in. The access token stops working immediately.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Signed out
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /dashboard:
+    get:
+      tags: [Accounts]
+      summary: Accounts, totals per currency, and the latest activity
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Dashboard data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      summary: List the caller's accounts
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accounts]
+                properties:
+                  accounts:
+                    type: array
+                    items: { $ref: '#/components/schemas/Account' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /accounts/{accountId}:
+    get:
+      tags: [Accounts]
+      summary: Get one account
+      description: An account that belongs to someone else is reported as `NOT_FOUND`, same as one that does not exist.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+      responses:
+        '200':
+          description: The account
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [account]
+                properties:
+                  account: { $ref: '#/components/schemas/Account' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /accounts/{accountId}/transactions:
+    get:
+      tags: [Accounts]
+      summary: Transaction history (cursor pagination, newest first)
+      description: |
+        Pass the `nextCursor` from a response as `cursor` to get the next page.
+        `nextCursor` is `null` on the last page. All filters are optional and can be combined,
+        and the same filters must be repeated on every page of one listing.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+        - name: cursor
+          in: query
+          description: Opaque value from a previous response's `nextCursor`
+          schema: { type: string }
+        - name: direction
+          in: query
+          description: "`IN` = money received, `OUT` = money sent"
+          schema: { type: string, enum: [IN, OUT] }
+        - name: category
+          in: query
+          schema: { $ref: '#/components/schemas/Category' }
+        - name: search
+          in: query
+          description: Case-insensitive match on description or counterparty name (max 100 characters)
+          schema: { type: string, maxLength: 100 }
+        - name: from
+          in: query
+          description: Earliest time, inclusive. ISO-8601 (offsets are converted to UTC).
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          description: Latest time, inclusive. ISO-8601.
+          schema: { type: string, format: date-time }
+        - name: minAmountMinor
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: maxAmountMinor
+          in: query
+          schema: { type: integer, minimum: 0 }
+      responses:
+        '200':
+          description: One page of transactions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionPage'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /transfers:
+    post:
+      tags: [Transfers]
+      summary: Transfer money from one of the caller's accounts
+      description: |
+        Atomic and idempotent. Debit, credit and ledger entries commit together or not at all.
+        The destination is exactly one of `destinationAccountId` (one of your own accounts) or
+        `destinationAccountNumber` (any customer account, 12 digits).
+
+        **Responses**
+        - `201` new transfer completed.
+        - `200` this `Idempotency-Key` was already used with the same details; the original result is
+          returned and no money moves again (header `Idempotent-Replayed: true`).
+        - `409 IDEMPOTENCY_CONFLICT` the key was used with different details.
+
+        Rule failures (`422`) are stored as FAILED transfers for auditing. Retrying a failed request
+        with the same key fails the same way, so use a new key for a new attempt.
+
+        Transfers to OTHER users count toward the daily limit (default $5,000.00, UTC day).
+        Transfers between your own accounts do not.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: A UUID, generated once per user intent and reused on retries
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransferRequest'
+            examples:
+              toAnotherUser:
+                summary: Send to another user by account number
+                value:
+                  sourceAccountId: 3f1b8c52-5a63-4c58-9d7f-6a2d3f4b9e10
+                  destinationAccountNumber: '200000000001'
+                  amountMinor: 2500
+                  category: FOOD
+                  description: Lunch
+              betweenOwnAccounts:
+                summary: Move money to your own savings account
+                value:
+                  sourceAccountId: 3f1b8c52-5a63-4c58-9d7f-6a2d3f4b9e10
+                  destinationAccountId: 9c7e2a14-0b5d-4f0e-8a1c-1d2e3f4a5b6c
+                  amountMinor: 30000
+      responses:
+        '201':
+          description: Transfer completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResult'
+        '200':
+          description: Duplicate request; the original result is returned
+          headers:
+            Idempotent-Replayed:
+              schema: { type: string, example: 'true' }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransferResult'
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Source or destination account not found (`NOT_FOUND`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Idempotency key reused with different details (`IDEMPOTENCY_CONFLICT`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: |
+            A business rule failed. `error.code` is one of `INSUFFICIENT_FUNDS`, `LIMIT_EXCEEDED`
+            (details: `limitMinor`, `usedTodayMinor`, `remainingMinor`), `SAME_ACCOUNT`,
+            `ACCOUNT_INACTIVE`, `CURRENCY_MISMATCH`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              examples:
+                insufficientFunds:
+                  value:
+                    error: { code: INSUFFICIENT_FUNDS, message: Insufficient funds for this transfer }
+                limitExceeded:
+                  value:
+                    error:
+                      code: LIMIT_EXCEEDED
+                      message: This transfer exceeds your daily limit
+                      details: { limitMinor: 500000, usedTodayMinor: 450000, remainingMinor: 50000 }
+
+  /transfers/{transferId}:
+    get:
+      tags: [Transfers]
+      summary: Transfer details
+      description: The caller must own the source or destination account, otherwise `NOT_FOUND`.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transferId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: The transfer
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [transfer]
+                properties:
+                  transfer:
+                    allOf:
+                      - $ref: '#/components/schemas/Transfer'
+                      - type: object
+                        required: [direction]
+                        properties:
+                          direction:
+                            type: string
+                            enum: [IN, OUT]
+                            description: From the caller's point of view
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    AccountId:
+      name: accountId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  responses:
+    ValidationError:
+      description: Invalid input (`VALIDATION_ERROR`). `details.fields` maps each field name to its messages.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: Some fields are invalid
+              details:
+                fields:
+                  amountMinor: [Amount must be a whole number of cents]
+    Unauthorized:
+      description: |
+        Missing or invalid token (`UNAUTHORIZED`), or the access token expired (`TOKEN_EXPIRED`).
+        On `TOKEN_EXPIRED`, call `/auth/refresh` and retry the request.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found or not owned by the caller (`NOT_FOUND`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    RateLimited:
+      description: Too many attempts (`RATE_LIMITED`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum:
+                - VALIDATION_ERROR
+                - RATE_LIMITED
+                - UNAUTHORIZED
+                - TOKEN_EXPIRED
+                - INVALID_CREDENTIALS
+                - INVALID_REFRESH_TOKEN
+                - FORBIDDEN
+                - NOT_FOUND
+                - EMAIL_TAKEN
+                - INSUFFICIENT_FUNDS
+                - LIMIT_EXCEEDED
+                - SAME_ACCOUNT
+                - ACCOUNT_INACTIVE
+                - CURRENCY_MISMATCH
+                - IDEMPOTENCY_CONFLICT
+                - INTERNAL_ERROR
+            message:
+              type: string
+              description: Safe to display to the user
+            details:
+              type: object
+              additionalProperties: true
+
+    Category:
+      type: string
+      enum: [FOOD, TRANSPORT, SHOPPING, BILLS, ENTERTAINMENT, HEALTH, INCOME, TRANSFER, OTHER]
+
+    User:
+      type: object
+      required: [id, email, fullName, themePreference]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        themePreference: { type: string, enum: [SYSTEM, LIGHT, DARK] }
+
+    Session:
+      type: object
+      required: [accessToken, refreshToken, expiresInSeconds, user]
+      properties:
+        accessToken: { type: string, description: Short-lived JWT }
+        refreshToken: { type: string, description: Opaque, single-use, valid for 30 days by default }
+        expiresInSeconds: { type: integer, example: 900 }
+        user: { $ref: '#/components/schemas/User' }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, fullName]
+      properties:
+        email: { type: string, format: email, maxLength: 254 }
+        password:
+          type: string
+          minLength: 8
+          description: At least 8 characters and at most 72 bytes, with at least one letter and one number
+        fullName: { type: string, minLength: 1, maxLength: 100 }
+        deviceName: { type: string, maxLength: 100 }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+        deviceName: { type: string, maxLength: 100 }
+
+    RefreshRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken: { type: string }
+        deviceName: { type: string, maxLength: 100 }
+
+    Account:
+      type: object
+      required: [id, name, type, accountNumber, currency, balanceMinor, status, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string, example: Everyday Checking }
+        type: { type: string, enum: [CHECKING, SAVINGS] }
+        accountNumber: { type: string, example: '625224658290' }
+        currency: { type: string, example: USD }
+        balanceMinor: { type: integer, example: 100000, description: Cents }
+        status: { type: string, enum: [ACTIVE, FROZEN, CLOSED] }
+        createdAt: { type: string, format: date-time }
+
+    Counterparty:
+      type: object
+      required: [name, accountNumberMasked, isOwnAccount]
+      properties:
+        name:
+          type: string
+          description: The other user's name, or the account/merchant name
+        accountNumberMasked:
+          type: string
+          nullable: true
+          example: ••••5531
+          description: Null for bank and merchant accounts
+        isOwnAccount:
+          type: boolean
+          description: True when the other side is one of the caller's own accounts
+
+    Transaction:
+      type: object
+      description: One side of a transfer as it appears in an account's history
+      required:
+        - transferId
+        - accountId
+        - direction
+        - amountMinor
+        - balanceAfterMinor
+        - currency
+        - status
+        - kind
+        - category
+        - createdAt
+        - counterparty
+      properties:
+        transferId: { type: string, format: uuid }
+        accountId: { type: string, format: uuid }
+        direction: { type: string, enum: [IN, OUT] }
+        amountMinor: { type: integer, minimum: 1 }
+        balanceAfterMinor: { type: integer, description: Account balance right after this entry }
+        currency: { type: string }
+        status: { type: string, enum: [COMPLETED, REVERSED] }
+        kind: { type: string, enum: [TRANSFER, DEPOSIT] }
+        category: { $ref: '#/components/schemas/Category' }
+        description: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        counterparty: { $ref: '#/components/schemas/Counterparty' }
+
+    TransactionPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/Transaction' }
+        nextCursor:
+          type: string
+          nullable: true
+          description: Null when there are no more pages
+
+    Dashboard:
+      type: object
+      required: [accounts, totals, recentTransactions]
+      properties:
+        accounts:
+          type: array
+          items: { $ref: '#/components/schemas/Account' }
+        totals:
+          type: array
+          items:
+            type: object
+            required: [currency, balanceMinor]
+            properties:
+              currency: { type: string }
+              balanceMinor: { type: integer }
+        recentTransactions:
+          type: array
+          items: { $ref: '#/components/schemas/Transaction' }
+
+    TransferRequest:
+      type: object
+      required: [sourceAccountId, amountMinor]
+      properties:
+        sourceAccountId: { type: string, format: uuid, description: Must belong to the caller }
+        destinationAccountId: { type: string, format: uuid, description: One of the caller's own accounts }
+        destinationAccountNumber: { type: string, pattern: '^\d{12}$', description: Any customer account }
+        amountMinor: { type: integer, minimum: 1, maximum: 100000000, description: Cents }
+        category: { $ref: '#/components/schemas/Category' }
+        description: { type: string, maxLength: 140 }
+      description: Provide exactly one of `destinationAccountId` or `destinationAccountNumber`.
+
+    Transfer:
+      type: object
+      required: [id, kind, status, sourceAccountId, destinationAccountId, amountMinor, currency, category, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [TRANSFER, DEPOSIT] }
+        status: { type: string, enum: [PENDING, COMPLETED, FAILED, REVERSED] }
+        failureReason: { type: string, nullable: true }
+        sourceAccountId: { type: string, format: uuid }
+        destinationAccountId: { type: string, format: uuid }
+        amountMinor: { type: integer }
+        currency: { type: string }
+        category: { $ref: '#/components/schemas/Category' }
+        description: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+        completedAt: { type: string, format: date-time, nullable: true }
+
+    TransferResult:
+      type: object
+      required: [transfer, sourceAccountBalanceMinor]
+      properties:
+        transfer: { $ref: '#/components/schemas/Transfer' }
+        sourceAccountBalanceMinor:
+          type: integer
+          description: The source account's balance after the transfer, from the database
