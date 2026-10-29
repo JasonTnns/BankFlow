@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!--
+        DEBUG BUILDS ONLY. Lets the app talk to the local Node server over plain
+        HTTP (emulator: 10.0.2.2, physical phone: your PC's LAN IP).
+        Release builds have no such file, so they get Android's default of
+        HTTPS only.
+    -->
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>
