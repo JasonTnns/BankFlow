@@ -11,7 +11,7 @@ data class Account(
     val name: String,
     val type: AccountType,
     val accountNumber: String,
-    val balance: Money,
+    val balance: `Money.kt`,
     val status: AccountStatus,
     val createdAt: Instant
 ) {

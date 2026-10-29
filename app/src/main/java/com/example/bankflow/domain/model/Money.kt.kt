@@ -1,9 +1,9 @@
 package com.example.bankflow.domain.model
 
-data class Money(
+data class `Money.kt`(
     val minorUnits: Long,
     val currency: String = DEFAULT_CURRENCY,
-) : Comparable<Money> {
+) : Comparable<`Money.kt`> {
 
     init {
         require(currency.length == 3) { "Currency must be a 3-letter code" }
@@ -13,24 +13,24 @@ data class Money(
     val isPositive: Boolean get() = minorUnits > 0L
     val isNegative: Boolean get() = minorUnits < 0L
 
-    operator fun plus(other: Money): Money {
+    operator fun plus(other: `Money.kt`): `Money.kt` {
         requireSameCurrency(other)
         return copy(minorUnits = Math.addExact(minorUnits, other.minorUnits))
     }
 
-    operator fun minus(other: Money): Money {
+    operator fun minus(other: `Money.kt`): `Money.kt` {
         requireSameCurrency(other)
         return copy(minorUnits = Math.subtractExact(minorUnits, other.minorUnits))
     }
 
-    operator fun unaryMinus(): Money = copy(minorUnits = Math.negateExact(minorUnits))
+    operator fun unaryMinus(): `Money.kt` = copy(minorUnits = Math.negateExact(minorUnits))
 
-    override fun compareTo(other: Money): Int {
+    override fun compareTo(other: `Money.kt`): Int {
         requireSameCurrency(other)
         return minorUnits.compareTo(other.minorUnits)
     }
 
-    private fun requireSameCurrency(other: Money) {
+    private fun requireSameCurrency(other: `Money.kt`) {
         require(currency == other.currency) { "Currency mismatch: $currency vs ${other.currency}" }
     }
 
@@ -41,13 +41,13 @@ data class Money(
 
         private val DECIMAL_INPUT = Regex("""^(\d{1,12})(?:\.(\d{1,2}))?$""")
 
-        fun zero(currency: String = DEFAULT_CURRENCY) = Money(0, currency)
+        fun zero(currency: String = DEFAULT_CURRENCY) = `Money.kt`(0, currency)
 
-        fun parse(text: String, currency: String = DEFAULT_CURRENCY): Money? {
+        fun parse(text: String, currency: String = DEFAULT_CURRENCY): `Money.kt`? {
             val match = DECIMAL_INPUT.matchEntire(text.trim()) ?: return null
             val whole = match.groupValues[1].toLong()
             val cents = match.groupValues[2].padEnd(2, '0').toLong()
-            return Money(whole * 100 + cents, currency)
+            return `Money.kt`(whole * 100 + cents, currency)
         }
     }
 }
