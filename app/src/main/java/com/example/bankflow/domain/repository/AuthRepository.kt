@@ -4,7 +4,7 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.User
 import kotlinx.coroutines.flow.Flow
 
-interface `AuthRepository.kt` {
+interface AuthRepository {
 
     val currentUser: Flow<User?>
 

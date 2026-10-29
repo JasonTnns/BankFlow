@@ -20,7 +20,7 @@ data class TransferRequest(
     val idempotencyKey: String,
     val sourceAccountId: String,
     val destination: TransferDestination,
-    val amount: `Money.kt`,
+    val amount: Money,
     val category: Category? = null,
     val description: String? = null
 )
@@ -32,7 +32,7 @@ data class Transfer(
     val failureReason: String?,
     val sourceAccountId: String,
     val destinationAccountId: String,
-    val amount: `Money.kt`,
+    val amount: Money,
     val category: Category,
     val description: String?,
     val createdAt: Instant,
@@ -42,5 +42,5 @@ data class Transfer(
 
 data class TransferResult(
     val transfer: Transfer,
-    val sourceAccountBalance: `Money.kt`
+    val sourceAccountBalance: Money
 )

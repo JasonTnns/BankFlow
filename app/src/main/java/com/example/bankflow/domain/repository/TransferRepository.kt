@@ -5,7 +5,7 @@ import com.example.bankflow.domain.model.Transfer
 import com.example.bankflow.domain.model.TransferRequest
 import com.example.bankflow.domain.model.TransferResult
 
-interface `TransferRepository.kt` {
+interface TransferRepository {
 
     suspend fun transfer(request: TransferRequest): AppResult<TransferResult>
 

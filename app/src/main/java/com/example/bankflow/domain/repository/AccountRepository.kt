@@ -2,12 +2,13 @@ package com.example.bankflow.domain.repository
 
 import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.Account
+import com.example.bankflow.domain.model.Dashboard
 import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.domain.model.TransactionPage
 
-interface `AccountRepository.kt` {
+interface AccountRepository {
 
-    suspend fun getDashboard(): AppResult<`Dashboard.kt`>
+    suspend fun getDashboard(): AppResult<Dashboard>
 
     suspend fun getAccounts(): AppResult<List<Account>>
 
