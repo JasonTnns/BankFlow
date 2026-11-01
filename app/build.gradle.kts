@@ -70,9 +70,13 @@ kotlin {
 // Room writes its schema JSON here; commit these files to track database versions.
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("KOIN_CONFIG_CHECK", "true")
 }
 
 dependencies {
+    implementation(libs.koin.annotations)
+    ksp(libs.koin.ksp.compiler)
     // AndroidX
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -8,7 +8,9 @@ import com.example.bankflow.domain.model.TransferDestination
 import com.example.bankflow.domain.model.TransferRequest
 import com.example.bankflow.domain.model.TransferResult
 import com.example.bankflow.domain.repository.TransferRepository
+import org.koin.core.annotation.Factory
 
+@Factory
 class TransferMoneyUseCase(
     private val transferRepository: TransferRepository,
 ) {

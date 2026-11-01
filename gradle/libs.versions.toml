@@ -15,6 +15,7 @@ ktor = "3.0.2"
 koin = "4.0.0"
 room = "2.6.1"
 datastore = "1.1.1"
+koinAnnotations = "1.4.0"
 
 junit = "4.13.2"
 androidxJunit = "1.2.1"
@@ -63,6 +64,8 @@ koin-android = { group = "io.insert-koin", name = "koin-android" }
 koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose" }
 koin-test = { group = "io.insert-koin", name = "koin-test" }
 koin-test-junit4 = { group = "io.insert-koin", name = "koin-test-junit4" }
+koin-annotations = { group = "io.insert-koin", name = "koin-annotations", version.ref = "koinAnnotations" }
+koin-ksp-compiler = { group = "io.insert-koin", name = "koin-ksp-compiler", version.ref = "koinAnnotations" }
 
 # Persistence
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
