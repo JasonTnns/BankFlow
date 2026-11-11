@@ -1,24 +1,9 @@
 'use strict';
 
-/**
- * Account service (read side): accounts, balances, dashboard, and transaction
- * history with cursor pagination, filtering and search.
- *
- * History is read from the LEDGER, so it only contains money that actually
- * moved. Each ledger row is "my side" of a transfer; a self-join finds the
- * other side to describe the counterparty. Rejected attempts (FAILED
- * transfers) are audit records and are available through getTransfer, not here.
- *
- * Every query is scoped to the caller's accounts. An account that isn't yours
- * is reported as NOT_FOUND, exactly like one that doesn't exist.
- */
-
 const config = require('../config');
 const { Errors } = require('../errors');
 
-// ------------------------------------------------------------------ cursors
 
-/** Cursors are opaque to clients: base64url of the last ledger seq returned. */
 function encodeCursor(seq) {
   return Buffer.from(String(seq), 'utf8').toString('base64url');
 }
@@ -31,7 +16,6 @@ function decodeCursor(cursor) {
   return seq;
 }
 
-// ------------------------------------------------------------------ mapping
 
 function toAccountDto(row) {
   return {
@@ -46,9 +30,15 @@ function toAccountDto(row) {
   };
 }
 
-/** "483920175531" -> "••••5531". The full number is only shown to its owner. */
 function maskAccountNumber(accountNumber) {
   return `••••${accountNumber.slice(-4)}`;
+}
+
+function shortName(fullName) {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length < 2) return parts[0];
+  const [initial] = [...parts[parts.length - 1]];
+  return `${parts[0]} ${initial.toUpperCase()}.`;
 }
 
 function toTransactionDto(row) {
@@ -73,22 +63,13 @@ function toTransactionDto(row) {
   };
 }
 
-/** Escape LIKE wildcards so a search for "50%" matches the text "50%". */
 function escapeLike(text) {
   return text.replace(/[\\%_]/g, (ch) => `\\${ch}`);
 }
 
-// ------------------------------------------------------------------ service
 
-/**
- * @param {import('better-sqlite3').Database} db
- */
 function createAccountService(db) {
-  /**
-   * Shared history query.
-   * @param {object} scope { accountId?: string, userId: string }
-   *   With accountId: history of that one account. Without: all of the user's accounts.
-   */
+
   function queryHistory(scope, filters = {}) {
     const limit = Math.min(
       filters.limit ?? config.banking.defaultPageSize,
@@ -106,6 +87,10 @@ function createAccountService(db) {
       params.push(scope.userId);
     }
 
+    if (filters.transferId) {
+      where.push('l.transfer_id = ?');
+      params.push(filters.transferId);
+    }
     if (filters.cursor) {
       where.push('l.seq < ?');
       params.push(decodeCursor(filters.cursor));
@@ -144,7 +129,6 @@ function createAccountService(db) {
       params.push(pattern, pattern, pattern);
     }
 
-    // Fetch one extra row to learn whether another page exists.
     params.push(limit + 1);
 
     const rows = db
@@ -179,7 +163,6 @@ function createAccountService(db) {
     };
   }
 
-  /** Returns the account row only if the caller owns it. */
   function requireOwnedAccount(userId, accountId) {
     const row = db
       .prepare(`SELECT * FROM accounts WHERE id = ? AND user_id = ? AND kind = 'CUSTOMER'`)
@@ -203,21 +186,38 @@ function createAccountService(db) {
     return toAccountDto(requireOwnedAccount(userId, accountId));
   }
 
-  /**
-   * Paginated history for one account.
-   * @param {object} [filters] { limit, cursor, direction: 'IN'|'OUT', category, search,
-   *                             from, to, minAmountMinor, maxAmountMinor }
-   */
+
   function listTransactions(userId, accountId, filters = {}) {
     requireOwnedAccount(userId, accountId);
     return queryHistory({ userId, accountId }, filters);
   }
 
-  /**
-   * Dashboard: accounts, totals per currency, and the latest activity across
-   * all accounts. A transfer between two of your own accounts appears twice
-   * (once per side), each with its own running balance.
-   */
+  function getTransaction(userId, accountId, transferId) {
+    requireOwnedAccount(userId, accountId);
+    const { items } = queryHistory({ userId, accountId }, { transferId, limit: 1 });
+    if (items.length === 0) throw Errors.notFound('Transaction not found');
+    return items[0];
+  }
+
+  function lookupRecipient(userId, accountNumber) {
+    const row = db
+      .prepare(
+        `SELECT a.account_number, a.currency, a.status, a.user_id, u.full_name
+           FROM accounts a JOIN users u ON u.id = a.user_id
+          WHERE a.account_number = ? AND a.kind = 'CUSTOMER'`
+      )
+      .get(accountNumber);
+    if (!row) throw Errors.notFound('No account found with that number');
+
+    return {
+      displayName: shortName(row.full_name),
+      accountNumberMasked: maskAccountNumber(row.account_number),
+      currency: row.currency,
+      status: row.status,
+      isOwnAccount: row.user_id === userId,
+    };
+  }
+
   function getDashboard(userId, { recentLimit = 5 } = {}) {
     const accounts = listAccounts(userId);
 
@@ -233,7 +233,14 @@ function createAccountService(db) {
     };
   }
 
-  return { listAccounts, getAccount, listTransactions, getDashboard };
+  return {
+    listAccounts,
+    getAccount,
+    listTransactions,
+    getTransaction,
+    lookupRecipient,
+    getDashboard,
+  };
 }
 
 module.exports = { createAccountService };

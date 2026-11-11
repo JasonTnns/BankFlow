@@ -5,7 +5,9 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.domain.model.TransactionPage
 import com.example.bankflow.domain.repository.AccountRepository
+import org.koin.core.annotation.Factory
 
+@Factory
 class GetTransactionsUseCase(
     private val accountRepository: AccountRepository,
 ) {

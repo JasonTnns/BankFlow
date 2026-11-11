@@ -4,7 +4,9 @@ import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.User
 import com.example.bankflow.domain.repository.AuthRepository
+import org.koin.core.annotation.Factory
 
+@Factory
 class RegisterUseCase(
     private val authRepository: AuthRepository,
 ) {

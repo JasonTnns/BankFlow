@@ -261,6 +261,35 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
 
+  /accounts/{accountId}/transactions/{transferId}:
+    get:
+      tags: [ Accounts ]
+      summary: One transaction from an account's history
+      description: |
+        Same shape as an item in the history list. For a transfer between two of your own accounts,
+        the `accountId` in the path selects which side (debit or credit) is returned.
+        A transaction that isn't in an account you own is reported as `NOT_FOUND`.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - $ref: '#/components/parameters/AccountId'
+        - name: transferId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: The transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ transaction ]
+                properties:
+                  transaction: { $ref: '#/components/schemas/Transaction' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
   /transfers:
     post:
       tags: [Transfers]
@@ -646,3 +675,42 @@ components:
         sourceAccountBalanceMinor:
           type: integer
           description: The source account's balance after the transfer, from the database
+
+    /recipients/lookup:
+      get:
+        tags: [ Accounts ]
+        summary: Name the owner of an account number before sending money
+        description: |
+          "Confirmation of payee". Returns a shortened name (`Bob D.`) and a masked number, never the
+          full number or surname. Only customer accounts can be looked up. Rate limited per user
+          (default 30 per minute).
+        security:
+          - bearerAuth: [ ]
+        parameters:
+          - name: accountNumber
+            in: query
+            required: true
+            schema: { type: string, pattern: '^\d{12}$' }
+        responses:
+          '200':
+            description: The recipient
+            content:
+              application/json:
+                schema:
+                  type: object
+                  required: [ recipient ]
+                  properties:
+                    recipient: { $ref: '#/components/schemas/Recipient' }
+          '400': { $ref: '#/components/responses/ValidationError' }
+          '401': { $ref: '#/components/responses/Unauthorized' }
+          '404': { $ref: '#/components/responses/NotFound' }
+          '429': { $ref: '#/components/responses/RateLimited' }
+          Recipient:
+            type: object
+            required: [ displayName, accountNumberMasked, currency, status, isOwnAccount ]
+            properties:
+              displayName: { type: string, example: Bob D. }
+              accountNumberMasked: { type: string, example: ••••0001 }
+              currency: { type: string, example: USD }
+              status: { type: string, enum: [ ACTIVE, FROZEN, CLOSED ] }
+              isOwnAccount: { type: boolean }

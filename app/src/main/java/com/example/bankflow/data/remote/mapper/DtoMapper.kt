@@ -2,6 +2,7 @@ package com.example.bankflow.data.remote.mapper
 
 import com.example.bankflow.data.remote.dto.AccountDto
 import com.example.bankflow.data.remote.dto.DashboardDto
+import com.example.bankflow.data.remote.dto.RecipientDto
 import com.example.bankflow.data.remote.dto.SessionDto
 import com.example.bankflow.data.remote.dto.TransactionDto
 import com.example.bankflow.data.remote.dto.TransactionPageDto
@@ -19,6 +20,7 @@ import com.example.bankflow.domain.model.Counterparty
 import com.example.bankflow.domain.model.Dashboard
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.Money
+import com.example.bankflow.domain.model.Recipient
 import com.example.bankflow.domain.model.ThemePreference
 import com.example.bankflow.domain.model.Transaction
 import com.example.bankflow.domain.model.TransactionPage
@@ -113,4 +115,12 @@ fun TransferRequest.toDto() = TransferRequestDto(
     amountMinor = amount.minorUnits,
     category = category?.name,
     description = description,
+)
+
+fun RecipientDto.toDomain() = Recipient(
+    displayName = displayName,
+    accountNumberMasked = accountNumberMasked,
+    currency = currency,
+    status = enumValueOf<AccountStatus>(status),
+    isOwnAccount = isOwnAccount,
 )

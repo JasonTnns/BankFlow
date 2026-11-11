@@ -1,29 +1,17 @@
 'use strict';
 
-/**
- * Read-only banking endpoints (all require a valid access token)
- *
- *   GET /dashboard                         -> { accounts, totals, recentTransactions }
- *   GET /accounts                          -> { accounts }
- *   GET /accounts/:accountId               -> { account }
- *   GET /accounts/:accountId/transactions  -> { items, nextCursor }
- *
- * Transaction filters (all optional, combinable):
- *   limit (1-50, default 20), cursor, direction=IN|OUT, category, search,
- *   from, to (ISO-8601 dates/times), minAmountMinor, maxAmountMinor
- */
 
 const express = require('express');
+const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
 
 const config = require('../config');
 const { CATEGORIES } = require('../constants');
+const { Errors } = require('../errors');
 const { validate } = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
 
-// ------------------------------------------------------------------ schemas
 
-/** Accept any ISO-8601 instant, normalise to UTC "...Z" so it compares correctly with stored text. */
 const isoInstant = z
   .string()
   .datetime({ offset: true, message: 'Must be an ISO-8601 date-time' })
@@ -60,18 +48,28 @@ const transactionQuerySchema = z
     { message: 'minAmountMinor must not exceed maxAmountMinor', path: ['minAmountMinor'] }
   );
 
-// ------------------------------------------------------------------ router
+const recipientLookupSchema = z.object({
+  accountNumber: z
+    .string({ required_error: 'Account number is required' })
+    .trim()
+    .regex(/^\d{12}$/, 'Account number must be 12 digits'),
+});
 
-/**
- * @param {object} deps
- * @param {ReturnType<import('../services/accountService').createAccountService>} deps.accountService
- * @param {import('express').RequestHandler} deps.requireAuth
- */
+
 function createAccountRoutes({ accountService, requireAuth }) {
   const router = express.Router();
 
-  // requireAuth is attached per route (not router.use) so this router, which is
-  // mounted at the API root, can never accidentally protect or shadow other paths.
+  const lookupLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    limit: config.rateLimit.lookupMaxPerMinute,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    skip: () => config.isTest,
+    keyGenerator: (req) => req.auth.userId,
+    handler: (_req, _res, next) => next(Errors.rateLimited()),
+  });
+
+
 
   router.get(
     '/dashboard',
@@ -106,7 +104,33 @@ function createAccountRoutes({ accountService, requireAuth }) {
     })
   );
 
+  router.get(
+    '/accounts/:accountId/transactions/:transferId',
+    requireAuth,
+    asyncHandler(async (req, res) => {
+      res.json({
+        transaction: accountService.getTransaction(
+          req.auth.userId,
+          req.params.accountId,
+          req.params.transferId
+        ),
+      });
+    })
+  );
+
+  router.get(
+    '/recipients/lookup',
+    requireAuth,
+    lookupLimiter,
+    validate(recipientLookupSchema, 'query'),
+    asyncHandler(async (req, res) => {
+      res.json({
+        recipient: accountService.lookupRecipient(req.auth.userId, req.query.accountNumber),
+      });
+    })
+  );
+
   return router;
 }
 
-module.exports = { createAccountRoutes, transactionQuerySchema };
+module.exports = { createAccountRoutes, transactionQuerySchema, recipientLookupSchema };

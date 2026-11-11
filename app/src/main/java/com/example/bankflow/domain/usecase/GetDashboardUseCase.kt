@@ -3,7 +3,9 @@ package com.example.bankflow.domain.usecase
 import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.Dashboard
 import com.example.bankflow.domain.repository.AccountRepository
+import org.koin.core.annotation.Factory
 
+@Factory
 class GetDashboardUseCase(
     private val accountRepository: AccountRepository,
 ) {

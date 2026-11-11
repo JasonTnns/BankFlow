@@ -146,3 +146,18 @@ data class TransferResultDto(
 
 @Serializable
 data class TransferEnvelopeDto(val transfer: TransferDto)
+
+@Serializable
+data class TransactionResponseDto(val transaction: TransactionDto)
+
+@Serializable
+data class RecipientDto(
+    val displayName: String,
+    val accountNumberMasked: String,
+    val currency: String,
+    val status: String,
+    val isOwnAccount: Boolean,
+)
+
+@Serializable
+data class RecipientResponseDto(val recipient: RecipientDto)

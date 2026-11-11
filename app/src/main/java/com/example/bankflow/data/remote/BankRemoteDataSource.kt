@@ -4,6 +4,7 @@ import com.example.bankflow.core.network.apiCall
 import com.example.bankflow.data.remote.dto.AccountResponseDto
 import com.example.bankflow.data.remote.dto.AccountsResponseDto
 import com.example.bankflow.data.remote.dto.DashboardDto
+import com.example.bankflow.data.remote.dto.RecipientResponseDto
 import com.example.bankflow.data.remote.dto.TransactionPageDto
 import com.example.bankflow.data.remote.dto.TransferEnvelopeDto
 import com.example.bankflow.data.remote.dto.TransferResultDto
@@ -26,6 +27,9 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import org.koin.core.annotation.Single
+import com.example.bankflow.data.remote.dto.TransactionResponseDto
+import com.example.bankflow.domain.model.Recipient
+import com.example.bankflow.domain.model.Transaction
 
 @Single
 class BankRemoteDataSource(private val client: HttpClient) {
@@ -87,5 +91,17 @@ class BankRemoteDataSource(private val client: HttpClient) {
         apiCall<TransferEnvelopeDto, Transfer>(
             request = { client.get("transfers/$transferId") },
             map = { it.transfer.toDomain() },
+        )
+
+    suspend fun getTransaction(accountId: String, transferId: String): AppResult<Transaction> =
+        apiCall<TransactionResponseDto, Transaction>(
+            request = { client.get("accounts/$accountId/transactions/$transferId") },
+            map = { it.transaction.toDomain() }
+        )
+
+    suspend fun lookupRecipient(accountNumber: String): AppResult<Recipient> =
+        apiCall<RecipientResponseDto, Recipient>(
+            request = { client.get("recipients/lookup") { parameter("accountNumber", accountNumber) } },
+            map = { it.recipient.toDomain() },
         )
 }

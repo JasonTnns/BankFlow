@@ -15,6 +15,7 @@ import com.example.bankflow.domain.repository.AuthRepository
 import io.ktor.client.HttpClient
 import org.koin.core.annotation.Module
 import org.koin.core.annotation.Single
+import java.time.Clock
 
 @Module
 class InfrastructureModule {
@@ -39,4 +40,7 @@ class InfrastructureModule {
         sessionStore: SessionStore,
         client: HttpClient,
     ): AuthRepository = AuthRepositoryImpl(remote, sessionStore, client, deviceName = Build.MODEL)
+
+    @Single
+    fun clock(): Clock = Clock.systemUTC()
 }

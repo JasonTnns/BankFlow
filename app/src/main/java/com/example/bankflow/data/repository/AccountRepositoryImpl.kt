@@ -8,6 +8,8 @@ import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.domain.model.TransactionPage
 import com.example.bankflow.domain.repository.AccountRepository
 import org.koin.core.annotation.Single
+import com.example.bankflow.domain.model.Transaction
+import com.example.bankflow.domain.model.Recipient
 
 @Single
 class AccountRepositoryImpl(
@@ -19,11 +21,18 @@ class AccountRepositoryImpl(
 
     override suspend fun getAccount(accountId: String): AppResult<Account> = remote.getAccount(accountId)
 
+    override suspend fun getTransaction(accountId: String, transferId: String): AppResult<Transaction> =
+        remote.getTransaction(accountId, transferId)
+
     override suspend fun getTransactions(
         accountId: String,
         filter: TransactionFilter,
         cursor: String?,
         limit: Int
     ): AppResult<TransactionPage> = remote.getTransactions(accountId, filter, cursor, limit)
+
+
+    override suspend fun lookupRecipient(accountNumber: String): AppResult<Recipient> =
+        remote.lookupRecipient(accountNumber)
 
 }

@@ -58,6 +58,7 @@ const config = Object.freeze({
 
     authMaxAttempts: intFromEnv('AUTH_RATE_LIMIT_MAX', 10),
     authWindowMinutes: intFromEnv('AUTH_RATE_LIMIT_WINDOW_MINUTES', 15),
+    lookupMaxPerMinute: intFromEnv('LOOKUP_RATE_LIMIT_PER_MINUTE', 30),
   }),
 
   banking: Object.freeze({

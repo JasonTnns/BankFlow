@@ -197,4 +197,55 @@ class RemoteDataSourceTest {
         assertEquals("r", session.tokens.refreshToken)
         assertEquals("Alice", session.user.fullName)
     }
+
+    @Test
+    fun `one transaction is loaded from its own path and mapped`() = runBlocking {
+        var path: String? = null
+        val bank = BankRemoteDataSource(testClient(FakeSessionStore(signedIn)) { request ->
+            path = request.url.encodedPath
+            json("""{"transaction":$TRANSACTION_JSON}""")
+        })
+
+        val transaction = (bank.getTransaction("acc-1", "t-1") as AppResult.Success).value
+
+        assertTrue(path!!.endsWith("/accounts/acc-1/transactions/t-1"))
+        assertEquals("t-1", transaction.transferId)
+        assertEquals(Money(100_000), transaction.amount)
+    }
+
+    @Test
+    fun `a transaction that is not found maps to NotFound`() = runBlocking {
+        val bank = BankRemoteDataSource(testClient(FakeSessionStore(signedIn)) {
+            json(errorJson("NOT_FOUND"), HttpStatusCode.NotFound)
+        })
+
+        assertEquals(AppError.NotFound, (bank.getTransaction("acc-1", "nope") as AppResult.Failure).error)
+    }
+
+    @Test
+    fun `a recipient lookup sends the number and maps the answer`() = runBlocking {
+        var number: String? = null
+        val bank = BankRemoteDataSource(testClient(FakeSessionStore(signedIn)) { request ->
+            number = request.url.parameters["accountNumber"]
+            json(
+                """{"recipient":{"displayName":"Bob D.","accountNumberMasked":"••••0001",
+                    "currency":"USD","status":"ACTIVE","isOwnAccount":false}}""",
+            )
+        })
+
+        val recipient = (bank.lookupRecipient("200000000001") as AppResult.Success).value
+
+        assertEquals("200000000001", number)
+        assertEquals("Bob D.", recipient.displayName)
+        assertEquals(com.example.bankflow.domain.model.AccountStatus.ACTIVE, recipient.status)
+    }
+
+    @Test
+    fun `an unknown account number maps to NotFound`() = runBlocking {
+        val bank = BankRemoteDataSource(testClient(FakeSessionStore(signedIn)) {
+            json(errorJson("NOT_FOUND"), HttpStatusCode.NotFound)
+        })
+
+        assertEquals(AppError.NotFound, (bank.lookupRecipient("999999999999") as AppResult.Failure).error)
+    }
 }

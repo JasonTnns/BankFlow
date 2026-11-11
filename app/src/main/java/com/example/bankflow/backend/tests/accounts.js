@@ -4,12 +4,14 @@ const request = require('supertest');
 
 const { createTestApp, assertLedgerConsistent } = require('./helpers');
 const { seedDatabase, DEMO_PASSWORD, ALICE_EMAIL } = require('../src/seed');
+const { seedDatabase, DEMO_PASSWORD, ALICE_EMAIL, BOB_EMAIL } = require('../src/seed');
 
 describe('accounts and transaction history (seeded demo data)', () => {
   let app;
   let db;
   let auth;
   let checking;
+  let savings;
 
   beforeAll(async () => {
     ({ app, db } = createTestApp());
@@ -21,6 +23,7 @@ describe('accounts and transaction history (seeded demo data)', () => {
 
     const accounts = await request(app).get('/api/v1/accounts').set(auth);
     checking = accounts.body.accounts.find((a) => a.accountNumber === '100000000001');
+    savings = accounts.body.accounts.find((a) => a.accountNumber === '100000000002');
   });
   afterAll(() => db.close());
 
@@ -49,6 +52,47 @@ describe('accounts and transaction history (seeded demo data)', () => {
     const res = await history({ limit: 1 });
     expect(res.body.items[0].balanceAfterMinor).toBe(checking.balanceMinor);
   });
+
+    describe('recipient lookup', () => {
+      const lookup = (accountNumber, headers = auth) =>
+        request(app).get('/api/v1/recipients/lookup').query({ accountNumber }).set(headers);
+
+      test('names the person with a shortened name and a masked number', async () => {
+        const res = await lookup('200000000001');
+
+        expect(res.status).toBe(200);
+        expect(res.body.recipient).toEqual({
+          displayName: 'Bob D.',
+          accountNumberMasked: '••••0001',
+          currency: 'USD',
+          status: 'ACTIVE',
+          isOwnAccount: false,
+        });
+
+        expect(JSON.stringify(res.body)).not.toContain('200000000001');
+        expect(JSON.stringify(res.body)).not.toContain('Demo');
+      });
+
+      test("flags the caller's own accounts", async () => {
+        const res = await lookup('100000000002');
+
+        expect(res.body.recipient).toMatchObject({ displayName: 'Alice D.', isOwnAccount: true });
+      });
+
+      test('an unknown number is not found', async () => {
+        expect((await lookup('999999999999')).status).toBe(404);
+      });
+
+      test('malformed numbers are rejected, so bank and merchant accounts cannot be probed', async () => {
+        expect((await lookup('MERCHANT-GROCERY')).status).toBe(400);
+        expect((await lookup('123')).status).toBe(400);
+      });
+
+      test('requires authentication', async () => {
+        const res = await request(app).get('/api/v1/recipients/lookup').query({ accountNumber: '200000000001' });
+        expect(res.status).toBe(401);
+      });
+    });
 
   describe('pagination', () => {
     test('walking every page returns each transaction exactly once, newest first', async () => {
@@ -103,6 +147,45 @@ describe('accounts and transaction history (seeded demo data)', () => {
       const outgoing = await history({ direction: 'OUT', limit: 50 });
       expect(outgoing.body.items.every((t) => t.direction === 'OUT')).toBe(true);
     });
+
+      describe('transaction details', () => {
+        const detail = (accountId, transferId, headers = auth) =>
+          request(app).get(`/api/v1/accounts/${accountId}/transactions/${transferId}`).set(headers);
+
+        test('returns the same transaction the history list shows', async () => {
+          const first = (await history({ limit: 1 })).body.items[0];
+
+          const res = await detail(checking.id, first.transferId);
+
+          expect(res.status).toBe(200);
+          expect(res.body.transaction).toEqual(first);
+        });
+
+        test('a transfer between your own accounts has one entry per account', async () => {
+          const own = (await history({ category: 'TRANSFER', limit: 1 })).body.items[0];
+
+          const fromChecking = await detail(checking.id, own.transferId);
+          const toSavings = await detail(savings.id, own.transferId);
+
+          expect(fromChecking.body.transaction.direction).toBe('OUT');
+          expect(toSavings.body.transaction.direction).toBe('IN');
+          expect(toSavings.body.transaction.accountId).toBe(savings.id);
+        });
+
+        test('someone else cannot read it, and an unknown id is not found', async () => {
+          const first = (await history({ limit: 1 })).body.items[0];
+          const bob = await request(app).post('/api/v1/auth/login').send({ email: BOB_EMAIL, password: DEMO_PASSWORD });
+          const bobAuth = { Authorization: `Bearer ${bob.body.accessToken}` };
+
+          expect((await detail(checking.id, first.transferId, bobAuth)).status).toBe(404);
+          expect((await detail(checking.id, '00000000-0000-4000-8000-000000000000')).status).toBe(404);
+        });
+
+        test('requires authentication', async () => {
+          const res = await request(app).get(`/api/v1/accounts/${checking.id}/transactions/x`);
+          expect(res.status).toBe(401);
+        });
+      });
 
     test('category', async () => {
       const res = await history({ category: 'FOOD', limit: 50 });

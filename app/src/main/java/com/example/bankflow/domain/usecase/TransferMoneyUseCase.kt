@@ -23,7 +23,7 @@ class TransferMoneyUseCase(
         return transferRepository.transfer(normalize(request))
     }
 
-    private fun validate(request: TransferRequest, source: Account): AppError? {
+    fun validate(request: TransferRequest, source: Account): AppError? {
         val fields = linkedMapOf<String, List<String>>()
 
         if (request.idempotencyKey.isBlank()) {
@@ -71,7 +71,7 @@ class TransferMoneyUseCase(
         return null
     }
 
-    private fun normalize(request: TransferRequest): TransferRequest = request.copy(
+    fun normalize(request: TransferRequest): TransferRequest = request.copy(
         destination = when (val destination = request.destination) {
             is TransferDestination.AccountNumber -> TransferDestination.AccountNumber(destination.number.trim())
             is TransferDestination.OwnAccount -> destination
