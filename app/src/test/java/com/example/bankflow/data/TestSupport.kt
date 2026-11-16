@@ -23,6 +23,9 @@ class FakeSessionStore(initial: StoredSession? = null) : SessionStore {
     override suspend fun current(): StoredSession? = state.value
     override suspend fun save(session: StoredSession) { state.value = session }
     override suspend fun clear() { state.value = null }
+    override suspend fun updateUser(transform: (UserDto) -> UserDto) {
+        state.value = state.value?.let { it.copy(user = transform(it.user)) }
+    }
 }
 
 fun testClient(store: SessionStore, handler: MockRequestHandler): HttpClient =

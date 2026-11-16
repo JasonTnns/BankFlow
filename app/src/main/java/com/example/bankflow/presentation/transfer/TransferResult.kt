@@ -41,6 +41,9 @@ fun TransferSuccessContent(
     onDone: () -> Unit,
     onAnother: () -> Unit,
     modifier: Modifier = Modifier,
+    saveRecipient: SaveRecipientState = SaveRecipientState.Idle,
+    canSaveRecipient: Boolean = false,
+    onSaveRecipient: () -> Unit = {},
 ) {
     Column(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -74,7 +77,14 @@ fun TransferSuccessContent(
                 ResultRow("Reference", result.transfer.id, tag = "success_reference", monospace = true, showDivider = false)
             }
         }
-
+        review?.let {
+            SaveRecipientPrompt(
+                recipientName = it.recipientName,
+                state = saveRecipient,
+                canSave = canSaveRecipient,
+                onSave = onSaveRecipient,
+            )
+        }
         Button(onClick = onDone, modifier = Modifier.fillMaxWidth().testTag("success_done")) { Text("Done") }
         OutlinedButton(onClick = onAnother, modifier = Modifier.fillMaxWidth().testTag("success_another")) {
             Text("Make another transfer")

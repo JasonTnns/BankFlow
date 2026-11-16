@@ -18,6 +18,7 @@ class ErrorMessagesTest {
             AppError.Validation(), AppError.NotFound, AppError.InsufficientFunds,
             AppError.LimitExceeded(), AppError.SameAccount, AppError.AccountInactive,
             AppError.CurrencyMismatch, AppError.IdempotencyConflict, AppError.Unknown(),
+            AppError.BeneficiaryExists,
         )
         errors.forEach { assertTrue("$it", it.userMessage(Locale.US).isNotBlank()) }
     }

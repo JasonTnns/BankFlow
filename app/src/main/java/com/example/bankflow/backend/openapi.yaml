@@ -29,8 +29,164 @@ tags:
   - name: Accounts
   - name: Transfers
   - name: System
+  - name: Profile
 
 paths:
+  /me:
+    get:
+      tags: [ Profile ]
+      summary: The signed-in user's profile
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: The profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ profile ]
+                properties:
+                  profile: { $ref: '#/components/schemas/Profile' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    patch:
+      tags: [ Profile ]
+      summary: Change the display name and/or the theme
+      description: |
+        Send at least one of `fullName` and `themePreference`. Omit a field to leave it unchanged
+        (`null` is rejected). Anything else in the body is ignored: email and the daily transfer limit
+        cannot be changed here. The new values also appear in the `user` returned by login and refresh.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: The updated profile
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ profile ]
+                properties:
+                  profile: { $ref: '#/components/schemas/Profile' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /beneficiaries:
+    get:
+      tags: [ Accounts ]
+      summary: List saved recipients
+      security:
+        - bearerAuth: [ ]
+      responses:
+        '200':
+          description: Saved recipients, ordered by nickname
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ beneficiaries ]
+                properties:
+                  beneficiaries:
+                    type: array
+                    items: { $ref: '#/components/schemas/Beneficiary' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+    post:
+      tags: [ Accounts ]
+      summary: Save a recipient
+      description: |
+        Only other users' customer accounts can be saved. At most 50 per user. Rate limited per user,
+        because a 404 here reveals whether an account number exists.
+      security:
+        - bearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ nickname, accountNumber ]
+              properties:
+                nickname: { type: string, minLength: 1, maxLength: 40 }
+                accountNumber: { type: string, pattern: '^\d{12}$' }
+      responses:
+        '201':
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ beneficiary ]
+                properties:
+                  beneficiary: { $ref: '#/components/schemas/Beneficiary' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: Already saved (`BENEFICIARY_EXISTS`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+
+  /beneficiaries/{beneficiaryId}:
+    delete:
+      tags: [ Accounts ]
+      summary: Remove a saved recipient
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: beneficiaryId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Removed
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /insights/summary:
+    get:
+      tags: [ Accounts ]
+      summary: Income, spending and a category breakdown for a time range
+      description: |
+        Counts only money that actually moved. Transfers between your own accounts are left out.
+        `from` is inclusive and `to` is exclusive. The client computes month boundaries in the user's
+        own time zone. The range may span at most 370 days. Figures are for one currency.
+      security:
+        - bearerAuth: [ ]
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: currency
+          in: query
+          description: 3-letter code, default USD
+          schema: { type: string, pattern: '^[A-Za-z]{3}$' }
+      responses:
+        '200':
+          description: The summary
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ summary ]
+                properties:
+                  summary: { $ref: '#/components/schemas/SpendingSummary' }
+        '400': { $ref: '#/components/responses/ValidationError' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
   /health:
     get:
       tags: [System]
@@ -466,6 +622,59 @@ components:
           schema: { $ref: '#/components/schemas/Error' }
 
   schemas:
+    Profile:
+      type: object
+      required: [ id, email, fullName, themePreference, dailyTransferLimitMinor, createdAt ]
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        fullName: { type: string }
+        themePreference: { type: string, enum: [ SYSTEM, LIGHT, DARK ] }
+        dailyTransferLimitMinor: { type: integer, example: 500000, description: Cents. Read only. }
+        createdAt: { type: string, format: date-time }
+
+    UpdateProfileRequest:
+      type: object
+      minProperties: 1
+      properties:
+        fullName: { type: string, minLength: 1, maxLength: 100 }
+        themePreference: { type: string, enum: [ SYSTEM, LIGHT, DARK ] }
+
+    Beneficiary:
+      type: object
+      required: [ id, nickname, accountNumber, accountNumberMasked, displayName, currency, status, createdAt ]
+      properties:
+        id: { type: string, format: uuid }
+        nickname: { type: string, example: Mum }
+        accountNumber: { type: string, example: '200000000001', description: The number the user saved }
+        accountNumberMasked: { type: string, example: ••••0001 }
+        displayName: { type: string, example: Bob D. }
+        currency: { type: string, example: USD }
+        status: { type: string, enum: [ ACTIVE, FROZEN, CLOSED ], description: Read live from the account }
+        createdAt: { type: string, format: date-time }
+
+    SpendingSummary:
+      type: object
+      required: [ from, to, currency, incomeMinor, spentMinor, netMinor, transactionCount, byCategory ]
+      properties:
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        currency: { type: string, example: USD }
+        incomeMinor: { type: integer, description: Money received, in cents }
+        spentMinor: { type: integer, description: Money sent, in cents }
+        netMinor: { type: integer, description: incomeMinor minus spentMinor }
+        transactionCount: { type: integer, description: Ledger entries counted, income and spending }
+        byCategory:
+          type: array
+          description: Spending only, biggest first
+          items:
+            type: object
+            required: [ category, spentMinor, count ]
+            properties:
+              category: { $ref: '#/components/schemas/Category' }
+              spentMinor: { type: integer }
+              count: { type: integer }
+
     Error:
       type: object
       required: [error]

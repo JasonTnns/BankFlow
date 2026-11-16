@@ -16,3 +16,9 @@ fun Money.format(locale: Locale = Locale.getDefault()): String {
 
 fun currencySymbol(currencyCode: String, locale: Locale = Locale.getDefault()): String =
     runCatching { Currency.getInstance(currencyCode).getSymbol(locale) }.getOrDefault(currencyCode)
+
+fun Money.formatSigned(locale: Locale = Locale.getDefault()): String = when {
+    isZero -> format(locale)
+    isPositive -> "+${format(locale)}"
+    else -> "\u2212${(-this).format(locale)}"
+}

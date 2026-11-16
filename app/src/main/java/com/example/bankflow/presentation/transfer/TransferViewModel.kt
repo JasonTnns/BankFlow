@@ -1,5 +1,7 @@
 package com.example.bankflow.presentation.transfer
 
+import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
+import com.example.bankflow.domain.usecase.GetBeneficiariesUseCase
 import androidx.lifecycle.viewModelScope
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
@@ -30,6 +32,8 @@ class TransferViewModel(
     private val getAccounts: GetAccountsUseCase,
     private val lookupRecipient: LookupRecipientUseCase,
     private val transferMoney: TransferMoneyUseCase,
+    private val getBeneficiaries: GetBeneficiariesUseCase,
+    private val addBeneficiary: AddBeneficiaryUseCase,
     private val idGenerator: IdGenerator,
     private val clock: Clock,
     changes: AccountChangeNotifier,
@@ -46,6 +50,15 @@ class TransferViewModel(
     override fun handleIntent(intent: TransferIntent) {
         when (intent) {
             TransferIntent.RetryLoadAccounts -> loadAccounts()
+            TransferIntent.RefreshRecipients -> loadRecipients()
+            is TransferIntent.RecipientSelected -> setState {
+                copy(
+                    destinationMode = DestinationMode.OTHER_PERSON,
+                    accountNumber = intent.beneficiary.accountNumber,
+                    formError = formError.withoutFieldError("destination"),
+                )
+            }
+            TransferIntent.SaveRecipient -> saveRecipient()
 
             is TransferIntent.SourceSelected -> setState {
                 copy(
@@ -117,9 +130,44 @@ class TransferViewModel(
                 accounts = accounts,
                 isLoadingAccounts = false,
                 sourceAccountId = accounts.firstOrNull { it.isActive }?.id,
+                beneficiaries = beneficiaries,
             )
         }
         loadAccounts(silent = true)
+    }
+
+    private fun loadRecipients() {
+        viewModelScope.launch {
+            val result = getBeneficiaries()
+            if (result is AppResult.Success) setState { copy(beneficiaries = result.value) }
+        }
+    }
+
+    private fun saveRecipient() {
+        val snapshot = currentState
+        val number = snapshot.unsavedRecipientNumber ?: return
+        val name = snapshot.review?.recipientName ?: return
+        if (snapshot.saveRecipient == SaveRecipientState.Saving) return
+
+        setState { copy(saveRecipient = SaveRecipientState.Saving) }
+        viewModelScope.launch {
+            when (val result = addBeneficiary(name, number)) {
+                is AppResult.Success -> setState {
+                    copy(
+                        beneficiaries = beneficiaries.filterNot { it.id == result.value.id } + result.value,
+                        saveRecipient = SaveRecipientState.Saved,
+                    )
+                }
+                is AppResult.Failure ->
+                    if (result.error == AppError.BeneficiaryExists) {
+                        // Saved on another device in the meantime: the goal is reached.
+                        setState { copy(saveRecipient = SaveRecipientState.Saved) }
+                        loadRecipients()
+                    } else {
+                        setState { copy(saveRecipient = SaveRecipientState.Failed(result.error)) }
+                    }
+            }
+        }
     }
 
 

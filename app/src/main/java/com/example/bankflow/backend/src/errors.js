@@ -15,6 +15,7 @@ const ErrorCode = Object.freeze({
 
   NOT_FOUND: 'NOT_FOUND',
   EMAIL_TAKEN: 'EMAIL_TAKEN',
+  BENEFICIARY_EXISTS: 'BENEFICIARY_EXISTS',
 
 
   INSUFFICIENT_FUNDS: 'INSUFFICIENT_FUNDS',
@@ -73,6 +74,9 @@ const Errors = Object.freeze({
 
   emailTaken: () =>
     new AppError(409, ErrorCode.EMAIL_TAKEN, 'An account with this email already exists'),
+
+  beneficiaryExists: () =>
+    new AppError(409, ErrorCode.BENEFICIARY_EXISTS, 'This recipient is already saved'),
 
   idempotencyConflict: () =>
     new AppError(

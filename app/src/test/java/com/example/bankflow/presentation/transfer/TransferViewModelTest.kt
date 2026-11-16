@@ -5,13 +5,16 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.AccountStatus
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.model.TransferDestination
+import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
 import com.example.bankflow.domain.usecase.GetAccountsUseCase
+import com.example.bankflow.domain.usecase.GetBeneficiariesUseCase
 import com.example.bankflow.domain.usecase.LookupRecipientUseCase
 import com.example.bankflow.domain.usecase.TransferMoneyUseCase
 import com.example.bankflow.testutil.FakeAccountChangeNotifier
 import com.example.bankflow.testutil.MainDispatcherRule
 import com.example.bankflow.testutil.SequentialIdGenerator
 import com.example.bankflow.testutil.StubAccountRepository
+import com.example.bankflow.testutil.StubBeneficiaryRepository
 import com.example.bankflow.testutil.StubTransferRepository
 import com.example.bankflow.testutil.TEST_ACCOUNT
 import com.example.bankflow.testutil.TEST_RECIPIENT
@@ -37,6 +40,7 @@ class TransferViewModelTest {
     private val transfers = StubTransferRepository()
     private val clock = TestClock()
     private val notifier = FakeAccountChangeNotifier()
+    private val beneficiaries = StubBeneficiaryRepository()
 
     init {
         accounts.accountsResult = AppResult.Success(listOf(TEST_ACCOUNT, TEST_SAVINGS))
@@ -46,6 +50,8 @@ class TransferViewModelTest {
         getAccounts = GetAccountsUseCase(accounts),
         lookupRecipient = LookupRecipientUseCase(accounts),
         transferMoney = TransferMoneyUseCase(transfers),
+        getBeneficiaries = GetBeneficiariesUseCase(beneficiaries),
+        addBeneficiary = AddBeneficiaryUseCase(beneficiaries),
         idGenerator = SequentialIdGenerator(),
         clock = clock,
         changes = notifier,
@@ -456,6 +462,146 @@ class TransferViewModelTest {
         assertNull(state.review)
         assertEquals(2, state.accounts.size)
         assertEquals("acc-1", state.sourceAccountId)
+    }
+
+    @Test
+    fun `saved recipients load when the screen asks for them`() {
+        beneficiaries.listResult = AppResult.Success(listOf(testBeneficiary("b1", "Mum")))
+        val viewModel = viewModel()
+        assertTrue(viewModel.state.value.beneficiaries.isEmpty())
+
+        viewModel.onIntent(TransferIntent.RefreshRecipients)
+
+        assertEquals(listOf("Mum"), viewModel.state.value.beneficiaries.map { it.nickname })
+    }
+
+    @Test
+    fun `a failed refresh keeps the recipients already loaded`() {
+        beneficiaries.listResult = AppResult.Success(listOf(testBeneficiary("b1", "Mum")))
+        val viewModel = viewModel()
+        viewModel.onIntent(TransferIntent.RefreshRecipients)
+
+        beneficiaries.listResult = AppResult.Failure(AppError.NoConnection)
+        viewModel.onIntent(TransferIntent.RefreshRecipients)
+
+        assertEquals(1, viewModel.state.value.beneficiaries.size)
+    }
+
+    @Test
+    fun `choosing a saved recipient fills the number and switches to someone else`() {
+        val viewModel = viewModel()
+        viewModel.onIntent(TransferIntent.DestinationModeChanged(DestinationMode.OWN_ACCOUNT))
+
+        viewModel.onIntent(TransferIntent.RecipientSelected(testBeneficiary(number = "200000000001")))
+
+        assertEquals(DestinationMode.OTHER_PERSON, viewModel.state.value.destinationMode)
+        assertEquals("200000000001", viewModel.state.value.accountNumber)
+    }
+
+    @Test
+    fun `a chosen recipient is checked and sent to like any typed number`() {
+        val viewModel = viewModel()
+        viewModel.onIntent(TransferIntent.RecipientSelected(testBeneficiary(number = "200000000001")))
+        viewModel.onIntent(TransferIntent.AmountChanged("25"))
+
+        viewModel.onIntent(TransferIntent.Continue)
+
+        assertEquals(TransferStep.REVIEW, viewModel.state.value.step)
+        assertEquals(listOf("200000000001"), accounts.recipientLookups)
+    }
+
+    @Test
+    fun `after a successful transfer a new recipient can be saved under their name`() {
+        val viewModel = viewModel()
+        viewModel.review()
+        viewModel.onIntent(TransferIntent.Confirm)
+        assertEquals("200000000001", viewModel.state.value.unsavedRecipientNumber)
+
+        viewModel.onIntent(TransferIntent.SaveRecipient)
+
+        assertEquals(listOf("Bob D." to "200000000001"), beneficiaries.added)
+        assertEquals(SaveRecipientState.Saved, viewModel.state.value.saveRecipient)
+        assertNull(viewModel.state.value.unsavedRecipientNumber)
+        assertEquals(1, viewModel.state.value.beneficiaries.size)
+    }
+
+    @Test
+    fun `a recipient who is already saved is not offered again`() {
+        beneficiaries.listResult = AppResult.Success(listOf(testBeneficiary(number = "200000000001")))
+        val viewModel = viewModel()
+        viewModel.onIntent(TransferIntent.RefreshRecipients)
+        viewModel.review()
+        viewModel.onIntent(TransferIntent.Confirm)
+
+        assertNull(viewModel.state.value.unsavedRecipientNumber)
+    }
+
+    @Test
+    fun `your own accounts are never offered as recipients`() {
+        val viewModel = viewModel()
+        viewModel.onIntent(TransferIntent.DestinationModeChanged(DestinationMode.OWN_ACCOUNT))
+        viewModel.onIntent(TransferIntent.OwnDestinationSelected("acc-2"))
+        viewModel.onIntent(TransferIntent.AmountChanged("100"))
+        viewModel.onIntent(TransferIntent.Continue)
+        viewModel.onIntent(TransferIntent.Confirm)
+
+        assertEquals(TransferStep.SUCCESS, viewModel.state.value.step)
+        assertNull(viewModel.state.value.unsavedRecipientNumber)
+    }
+
+    @Test
+    fun `a failed save can be retried`() {
+        beneficiaries.addResult = AppResult.Failure(AppError.NoConnection)
+        val viewModel = viewModel()
+        viewModel.review()
+        viewModel.onIntent(TransferIntent.Confirm)
+
+        viewModel.onIntent(TransferIntent.SaveRecipient)
+        assertEquals(SaveRecipientState.Failed(AppError.NoConnection), viewModel.state.value.saveRecipient)
+        assertEquals("200000000001", viewModel.state.value.unsavedRecipientNumber)
+
+        beneficiaries.addResult = null
+        viewModel.onIntent(TransferIntent.SaveRecipient)
+
+        assertEquals(SaveRecipientState.Saved, viewModel.state.value.saveRecipient)
+    }
+
+    @Test
+    fun `saving someone who is already saved elsewhere counts as saved`() {
+        beneficiaries.addResult = AppResult.Failure(AppError.BeneficiaryExists)
+        val viewModel = viewModel()
+        viewModel.review()
+        viewModel.onIntent(TransferIntent.Confirm)
+
+        viewModel.onIntent(TransferIntent.SaveRecipient)
+
+        assertEquals(SaveRecipientState.Saved, viewModel.state.value.saveRecipient)
+    }
+
+    @Test
+    fun `tapping Save repeatedly saves once`() {
+        val gate = CompletableDeferred<Unit>().also { beneficiaries.gate = it }
+        val viewModel = viewModel()
+        viewModel.review()
+        viewModel.onIntent(TransferIntent.Confirm)
+
+        repeat(3) { viewModel.onIntent(TransferIntent.SaveRecipient) }
+
+        assertEquals(1, beneficiaries.added.size)
+        gate.complete(Unit)
+    }
+
+    @Test
+    fun `starting a new transfer keeps the recipients but forgets the save state`() {
+        val viewModel = viewModel()
+        viewModel.review()
+        viewModel.onIntent(TransferIntent.Confirm)
+        viewModel.onIntent(TransferIntent.SaveRecipient)
+
+        viewModel.onIntent(TransferIntent.StartNew)
+
+        assertEquals(1, viewModel.state.value.beneficiaries.size)
+        assertEquals(SaveRecipientState.Idle, viewModel.state.value.saveRecipient)
     }
 
     private fun dummyRequest() = com.example.bankflow.domain.model.TransferRequest(

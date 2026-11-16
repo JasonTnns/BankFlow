@@ -34,4 +34,5 @@ sealed interface AppError {
     data object IdempotencyConflict : AppError
 
     data class Unknown(val message: String? = null) : AppError
+    data object BeneficiaryExists : AppError
 }

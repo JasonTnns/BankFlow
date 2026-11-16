@@ -13,6 +13,7 @@ fun AppError.userMessage(locale: Locale = Locale.getDefault()): String = when (t
     AppError.EmailTaken -> "An account with this email already exists."
     is AppError.Validation -> message?.takeIf { it.isNotBlank() } ?: "Please check the highlighted fields."
     AppError.NotFound -> "We couldn't find that."
+    AppError.BeneficiaryExists -> "This recipient is already saved."
     AppError.InsufficientFunds -> "You don't have enough funds for this transfer."
     is AppError.LimitExceeded -> remaining
         ?.let { "This is over your daily limit. You can still send up to ${it.format(locale)} today." }

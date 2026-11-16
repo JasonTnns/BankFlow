@@ -37,6 +37,7 @@ internal object ApiErrorMapper {
             "INVALID_CREDENTIALS" -> AppError.InvalidCredentials
             "FORBIDDEN", "NOT_FOUND" -> AppError.NotFound
             "EMAIL_TAKEN" -> AppError.EmailTaken
+            "BENEFICIARY_EXISTS" -> AppError.BeneficiaryExists
             "INSUFFICIENT_FUNDS" -> AppError.InsufficientFunds
             "LIMIT_EXCEEDED" -> AppError.LimitExceeded(
                 limit = details.money("limitMinor"),

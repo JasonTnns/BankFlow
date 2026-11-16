@@ -57,6 +57,7 @@ fun TransferFormContent(
     state: TransferState,
     onIntent: (TransferIntent) -> Unit,
     modifier: Modifier = Modifier,
+    onManageRecipients: () -> Unit = {},
 ) {
     val accountsError = state.accountsError
     when {
@@ -73,12 +74,16 @@ fun TransferFormContent(
             message = "You need an account before you can send money.",
             modifier = modifier,
         )
-        else -> FormBody(state, onIntent, modifier)
-    }
+        else -> FormBody(state, onIntent, onManageRecipients, modifier)    }
 }
 
 @Composable
-private fun FormBody(state: TransferState, onIntent: (TransferIntent) -> Unit, modifier: Modifier) {
+private fun FormBody(
+    state: TransferState,
+    onIntent: (TransferIntent) -> Unit,
+    onManageRecipients: () -> Unit,
+    modifier: Modifier,
+) {
     val busy = state.isPreparing
     val keyboard = LocalSoftwareKeyboardController.current
     val currency = state.sourceAccount?.balance?.currency ?: Money.DEFAULT_CURRENCY
@@ -157,6 +162,15 @@ private fun FormBody(state: TransferState, onIntent: (TransferIntent) -> Unit, m
                     }
                 }
             }
+        }
+        if (state.destinationMode == DestinationMode.OTHER_PERSON) {
+            SavedRecipients(
+                beneficiaries = state.beneficiaries,
+                selectedNumber = state.accountNumber,
+                enabled = !busy,
+                onSelect = { onIntent(TransferIntent.RecipientSelected(it)) },
+                onManage = onManageRecipients,
+            )
         }
 
         FormSection("Amount") {

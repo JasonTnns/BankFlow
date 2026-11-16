@@ -16,5 +16,8 @@ interface SessionStore {
 
     suspend fun current(): StoredSession?
     suspend fun save(session: StoredSession)
+
+    suspend fun updateUser(transform: (UserDto) -> UserDto)
+
     suspend fun clear()
 }

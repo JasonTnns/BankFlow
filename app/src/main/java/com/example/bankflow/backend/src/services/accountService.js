@@ -243,4 +243,4 @@ function createAccountService(db) {
   };
 }
 
-module.exports = { createAccountService };
+module.exports = { createAccountService, shortName, maskAccountNumber };

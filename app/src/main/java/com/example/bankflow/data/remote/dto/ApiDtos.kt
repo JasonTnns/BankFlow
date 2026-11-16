@@ -161,3 +161,65 @@ data class RecipientDto(
 
 @Serializable
 data class RecipientResponseDto(val recipient: RecipientDto)
+
+@Serializable
+data class BeneficiaryDto(
+    val id: String,
+    val nickname: String,
+    val accountNumber: String,
+    val accountNumberMasked: String,
+    val displayName: String,
+    val currency: String,
+    val status: String,
+    val createdAt: String,
+)
+
+@Serializable
+data class BeneficiariesResponseDto(val beneficiaries: List<BeneficiaryDto>)
+
+@Serializable
+data class BeneficiaryResponseDto(val beneficiary: BeneficiaryDto)
+
+@Serializable
+data class AddBeneficiaryRequestDto(val nickname: String, val accountNumber: String)
+
+@Serializable
+data class CategorySpendDto(
+    val category: String,
+    val spentMinor: Long,
+    val count: Int,
+)
+
+@Serializable
+data class SpendingSummaryDto(
+    val from: String,
+    val to: String,
+    val currency: String,
+    val incomeMinor: Long,
+    val spentMinor: Long,
+    val netMinor: Long,
+    val transactionCount: Int,
+    val byCategory: List<CategorySpendDto>,
+)
+
+@Serializable
+data class SpendingSummaryResponseDto(val summary: SpendingSummaryDto)
+
+@Serializable
+data class ProfileDto(
+    val id: String,
+    val email: String,
+    val fullName: String,
+    val themePreference: String,
+    val dailyTransferLimitMinor: Long,
+    val createdAt: String,
+)
+
+@Serializable
+data class ProfileResponseDto(val profile: ProfileDto)
+
+@Serializable
+data class UpdateProfileRequestDto(
+    val fullName: String? = null,
+    val themePreference: String? = null,
+)

@@ -41,7 +41,6 @@ fun DashboardScreen(
     userName: String,
     onAccountClick: (accountId: String) -> Unit,
     onTransactionClick: (Transaction) -> Unit,
-    onLogout: () -> Unit,
     viewModel: DashboardViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -50,8 +49,7 @@ fun DashboardScreen(
         userName = userName,
         onIntent = viewModel::onIntent,
         onAccountClick = onAccountClick,
-        onTransactionClick = onTransactionClick,
-        onLogout = onLogout,
+        onTransactionClick = onTransactionClick
     )
 }
 
@@ -61,8 +59,7 @@ fun DashboardContent(
     userName: String,
     onIntent: (DashboardIntent) -> Unit,
     onAccountClick: (accountId: String) -> Unit,
-    onLogout: () -> Unit,
-    onTransactionClick: (Transaction) -> Unit = {}
+    onTransactionClick: (Transaction) -> Unit = {},
 ) {
     val firstName = userName.trim().substringBefore(' ')
 
@@ -70,11 +67,6 @@ fun DashboardContent(
         topBar = {
             TopAppBar(
                 title = { Text(if (firstName.isEmpty()) "Hello" else "Hi, $firstName") },
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Log out")
-                    }
-                },
             )
         },
     ) { padding ->

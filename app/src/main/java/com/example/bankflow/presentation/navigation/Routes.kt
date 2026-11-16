@@ -22,3 +22,11 @@ data object DashboardRoute
 
 @Serializable
 data object TransferRoute
+
+@Serializable data object BeneficiariesRoute
+
+@Serializable
+data object InsightsRoute
+
+@Serializable
+data object ProfileRoute

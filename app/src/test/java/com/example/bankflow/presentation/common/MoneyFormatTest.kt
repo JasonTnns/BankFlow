@@ -29,4 +29,11 @@ class MoneyFormatTest {
     fun `uses the amount's own currency`() {
         assertEquals("€10.00", Money(1000, "EUR").format(Locale.US))
     }
+
+    @Test
+    fun `signed amounts spell out the direction`() {
+        assertEquals("+$25.00", Money(2_500).formatSigned(Locale.US))
+        assertEquals("\u2212$25.00", Money(-2_500).formatSigned(Locale.US))
+        assertEquals("$0.00", Money(0).formatSigned(Locale.US))
+    }
 }

@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -35,7 +37,10 @@ import com.example.bankflow.domain.model.User
 import com.example.bankflow.presentation.accounts.AccountDetailsScreen
 import com.example.bankflow.presentation.auth.login.LoginScreen
 import com.example.bankflow.presentation.auth.register.RegisterScreen
+import com.example.bankflow.presentation.beneficiaries.BeneficiariesScreen
 import com.example.bankflow.presentation.dashboard.DashboardScreen
+import com.example.bankflow.presentation.insights.InsightsScreen
+import com.example.bankflow.presentation.profile.ProfileScreen
 import com.example.bankflow.presentation.session.SessionState
 import com.example.bankflow.presentation.transactions.TransactionDetailsScreen
 import com.example.bankflow.presentation.transfer.TransferScreen
@@ -81,10 +86,11 @@ private fun AuthNavHost() {
         }
     }
 }
-
 private enum class TopLevelTab(val route: Any, val label: String, val icon: ImageVector) {
     HOME(DashboardRoute, "Home", Icons.Filled.Home),
-    TRANSFER(TransferRoute, "Transfer", Icons.Filled.SwapHoriz);
+    TRANSFER(TransferRoute, "Transfer", Icons.Filled.SwapHoriz),
+    INSIGHTS(InsightsRoute, "Insights", Icons.Filled.BarChart),
+    PROFILE(ProfileRoute, "Profile", Icons.Filled.Person);
 
     fun matches(currentRoute: String?): Boolean {
         val name = route::class.qualifiedName ?: return false
@@ -135,11 +141,25 @@ private fun MainNavHost(user: User, onLogout: () -> Unit) {
                     userName = user.fullName,
                     onAccountClick = { accountId -> navController.navigate(AccountDetailsRoute(accountId)) },
                     onTransactionClick = { navController.navigate(TransactionDetailsRoute(it.accountId, it.transferId)) },
-                    onLogout = onLogout,
                 )
             }
             composable<TransferRoute> {
-                TransferScreen(onDone = { navController.navigateToTab(DashboardRoute) })
+                TransferScreen(
+                    onDone = { navController.navigateToTab(DashboardRoute) },
+                    onManageRecipients = { navController.navigate(BeneficiariesRoute) },
+                )
+            }
+            composable<InsightsRoute> {
+                InsightsScreen()
+            }
+            composable<ProfileRoute> {
+                ProfileScreen(
+                    onOpenRecipients = { navController.navigate(BeneficiariesRoute) },
+                    onLogout = onLogout,
+                )
+            }
+            composable<BeneficiariesRoute> {
+                BeneficiariesScreen(onBack = { navController.popBackStack() })
             }
             composable<AccountDetailsRoute> { entry ->
                 val route = entry.toRoute<AccountDetailsRoute>()

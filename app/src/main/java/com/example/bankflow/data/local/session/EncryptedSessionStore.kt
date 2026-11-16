@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.bankflow.core.network.NetworkJson
+import com.example.bankflow.data.remote.dto.UserDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -36,13 +37,23 @@ class EncryptedSessionStore(
     override suspend fun current(): StoredSession? = session.first()
 
     override suspend fun save(session: StoredSession) {
-        val blob = cipher.encrypt(json.encodeToString(StoredSession.serializer(), session))
-        dataStore.edit { it[blobKey] = blob }
+        dataStore.edit { it[blobKey] = encode(session) }
+    }
+
+    override suspend fun updateUser(transform: (UserDto) -> UserDto) {
+
+        dataStore.edit { preferences ->
+            val current = decode(preferences[blobKey]) ?: return@edit
+            preferences[blobKey] = encode(current.copy(user = transform(current.user)))
+        }
     }
 
     override suspend fun clear() {
         dataStore.edit { it.remove(blobKey) }
     }
+
+    private fun encode(session: StoredSession): String =
+        cipher.encrypt(json.encodeToString(StoredSession.serializer(), session))
 
     private fun decode(blob: String?): StoredSession? {
         if (blob == null) return null

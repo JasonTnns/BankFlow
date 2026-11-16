@@ -1,9 +1,12 @@
 package com.example.bankflow.data.remote.mapper
 
 import com.example.bankflow.data.remote.dto.AccountDto
+import com.example.bankflow.data.remote.dto.BeneficiaryDto
 import com.example.bankflow.data.remote.dto.DashboardDto
+import com.example.bankflow.data.remote.dto.ProfileDto
 import com.example.bankflow.data.remote.dto.RecipientDto
 import com.example.bankflow.data.remote.dto.SessionDto
+import com.example.bankflow.data.remote.dto.SpendingSummaryDto
 import com.example.bankflow.data.remote.dto.TransactionDto
 import com.example.bankflow.data.remote.dto.TransactionPageDto
 import com.example.bankflow.data.remote.dto.TransferDto
@@ -15,12 +18,16 @@ import com.example.bankflow.domain.model.AccountStatus
 import com.example.bankflow.domain.model.AccountType
 import com.example.bankflow.domain.model.AuthSession
 import com.example.bankflow.domain.model.AuthTokens
+import com.example.bankflow.domain.model.Beneficiary
 import com.example.bankflow.domain.model.Category
+import com.example.bankflow.domain.model.CategorySpend
 import com.example.bankflow.domain.model.Counterparty
 import com.example.bankflow.domain.model.Dashboard
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.Money
+import com.example.bankflow.domain.model.Profile
 import com.example.bankflow.domain.model.Recipient
+import com.example.bankflow.domain.model.SpendingSummary
 import com.example.bankflow.domain.model.ThemePreference
 import com.example.bankflow.domain.model.Transaction
 import com.example.bankflow.domain.model.TransactionPage
@@ -123,4 +130,42 @@ fun RecipientDto.toDomain() = Recipient(
     currency = currency,
     status = enumValueOf<AccountStatus>(status),
     isOwnAccount = isOwnAccount,
+)
+
+fun BeneficiaryDto.toDomain() = Beneficiary(
+    id = id,
+    nickname = nickname,
+    accountNumber = accountNumber,
+    accountNumberMasked = accountNumberMasked,
+    displayName = displayName,
+    currency = currency,
+    status = enumValueOf<AccountStatus>(status),
+    createdAt = Instant.parse(createdAt),
+)
+
+fun SpendingSummaryDto.toDomain() = SpendingSummary(
+    from = Instant.parse(from),
+    to = Instant.parse(to),
+    income = Money(incomeMinor, currency),
+    spent = Money(spentMinor, currency),
+    net = Money(netMinor, currency),
+    transactionCount = transactionCount,
+    byCategory = byCategory.map {
+        CategorySpend(
+            category = it.category.toEnumOr(Category.OTHER),
+            spent = Money(it.spentMinor, currency),
+            count = it.count,
+        )
+    },
+)
+
+fun ProfileDto.toDomain() = Profile(
+    user = User(
+        id = id,
+        email = email,
+        fullName = fullName,
+        themePreference = themePreference.toEnumOr(ThemePreference.SYSTEM),
+    ),
+    dailyTransferLimit = Money(dailyTransferLimitMinor),
+    memberSince = Instant.parse(createdAt),
 )
