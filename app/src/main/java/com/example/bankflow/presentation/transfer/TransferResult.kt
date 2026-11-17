@@ -33,9 +33,17 @@ import androidx.compose.ui.unit.dp
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.model.TransferResult
 import com.example.bankflow.presentation.common.format
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.bankflow.presentation.components.rememberReduceMotion
 
 @Composable
 fun TransferSuccessContent(
+
     result: TransferResult,
     review: TransferReview?,
     onDone: () -> Unit,
@@ -45,6 +53,11 @@ fun TransferSuccessContent(
     canSaveRecipient: Boolean = false,
     onSaveRecipient: () -> Unit = {},
 ) {
+    val reduceMotion = rememberReduceMotion()
+    val iconScale = remember { Animatable(if (reduceMotion) 1f else 0.6f) }
+    LaunchedEffect(Unit) {
+        if (!reduceMotion) iconScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy))
+    }
     Column(
         modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -54,7 +67,12 @@ fun TransferSuccessContent(
             imageVector = Icons.Filled.CheckCircle,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.size(72.dp),
+            modifier = Modifier
+                .size(72.dp)
+                .graphicsLayer {
+                    scaleX = iconScale.value
+                    scaleY = iconScale.value
+                },
         )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,

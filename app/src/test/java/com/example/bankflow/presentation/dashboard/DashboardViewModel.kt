@@ -2,6 +2,7 @@ package com.example.bankflow.presentation.dashboard
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.model.Cached
 import com.example.bankflow.domain.model.Dashboard
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.usecase.GetDashboardUseCase
@@ -16,6 +17,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import java.time.Instant
 
 class DashboardViewModelTest {
 
@@ -129,5 +131,51 @@ class DashboardViewModelTest {
 
         gate.complete(Unit)
         assertEquals(updated, viewModel.state.value.dashboard)
+    }
+
+    @Test
+    fun `saved data shows at once and is replaced by fresh data`() {
+        val savedAt = Instant.parse("2026-10-29T09:00:00Z")
+        repository.cachedDashboard = Cached(TEST_DASHBOARD, savedAt)
+        val gate = CompletableDeferred<Unit>().also { repository.dashboardGate = it }
+
+        val viewModel = viewModel()
+
+        assertEquals(TEST_DASHBOARD, viewModel.state.value.dashboard)
+        assertEquals(savedAt, viewModel.state.value.savedAt)
+        assertTrue(viewModel.state.value.isRefreshing)
+        assertFalse("saved data means no skeleton", viewModel.state.value.isLoading)
+
+        val fresh = Dashboard(TEST_DASHBOARD.accounts, emptyList(), emptyList())
+        repository.dashboardResult = AppResult.Success(fresh)
+        gate.complete(Unit)
+
+        assertEquals(fresh, viewModel.state.value.dashboard)
+        assertNull(viewModel.state.value.savedAt)
+    }
+
+    @Test
+    fun `when the refresh fails the saved data stays, still marked as saved`() {
+        val savedAt = Instant.parse("2026-10-29T09:00:00Z")
+        repository.cachedDashboard = Cached(TEST_DASHBOARD, savedAt)
+        repository.dashboardResult = AppResult.Failure(AppError.NoConnection)
+
+        val state = viewModel().state.value
+
+        assertEquals(TEST_DASHBOARD, state.dashboard)
+        assertEquals(savedAt, state.savedAt)
+        assertEquals(AppError.NoConnection, state.error)
+    }
+
+    @Test
+    fun `without saved data the first load shows a skeleton as before`() {
+        val gate = CompletableDeferred<Unit>().also { repository.dashboardGate = it }
+
+        val state = viewModel().state.value
+
+        assertTrue(state.isLoading)
+        assertNull(state.dashboard)
+        assertNull(state.savedAt)
+        gate.complete(Unit)
     }
 }

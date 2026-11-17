@@ -68,6 +68,13 @@ import com.example.bankflow.presentation.common.signedAmount
 import com.example.bankflow.presentation.common.spokenDescription
 import com.example.bankflow.presentation.common.subtitle
 import com.example.bankflow.presentation.common.userMessage
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import com.example.bankflow.R
+import com.example.bankflow.presentation.common.lastUpdatedText
+import com.example.bankflow.presentation.common.resolve
+import java.time.Instant
 
 internal fun Category.icon(): ImageVector = when (this) {
     Category.FOOD -> Icons.Filled.Restaurant
@@ -206,7 +213,7 @@ fun ErrorState(error: AppError, onRetry: (() -> Unit)?, modifier: Modifier = Mod
         )
         Text(error.userMessage(), style = MaterialTheme.typography.bodyLarge, textAlign = TextAlign.Center)
         if (onRetry != null && error.isRetryable) {
-            Button(onClick = onRetry) { Text("Try again") }
+            Button(onClick = onRetry) { Text(stringResource(R.string.action_try_again)) }
         }
     }
 }
@@ -264,7 +271,7 @@ fun InlineError(error: AppError, onRetry: (() -> Unit)?, modifier: Modifier = Mo
                 modifier = Modifier.weight(1f),
             )
             if (onRetry != null && error.isRetryable) {
-                TextButton(onClick = onRetry) { Text("Retry") }
+                TextButton(onClick = onRetry) { Text(stringResource(R.string.action_retry)) }
             }
         }
     }
@@ -273,13 +280,15 @@ fun InlineError(error: AppError, onRetry: (() -> Unit)?, modifier: Modifier = Mo
 
 @Composable
 fun SkeletonBlock(modifier: Modifier = Modifier) {
+    val reduceMotion = rememberReduceMotion()
     val transition = rememberInfiniteTransition(label = "skeleton")
-    val alpha by transition.animateFloat(
+    val pulse by transition.animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(durationMillis = 900), RepeatMode.Reverse),
         label = "skeletonAlpha",
     )
+    val alpha = if (reduceMotion) 0.7f else pulse
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(8.dp))
@@ -308,10 +317,11 @@ fun SkeletonTransactionRow(modifier: Modifier = Modifier) {
 
 @Composable
 fun SkeletonHeader(modifier: Modifier = Modifier) {
+    val loading = stringResource(R.string.loading)
     Column(
         modifier = modifier
             .padding(16.dp)
-            .semantics { contentDescription = "Loading" },
+            .semantics { contentDescription = loading },
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SkeletonBlock(Modifier.width(96.dp).height(14.dp))
@@ -319,3 +329,17 @@ fun SkeletonHeader(modifier: Modifier = Modifier) {
     }
 }
 fun categoryIcon(category: Category): ImageVector = category.icon()
+
+@Composable
+fun SavedDataNotice(savedAt: Instant, modifier: Modifier = Modifier) {
+    val message = remember(savedAt) { lastUpdatedText(savedAt) }
+    Text(
+        text = message.resolve(),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .testTag("saved_notice"),
+    )
+}

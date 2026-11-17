@@ -35,6 +35,8 @@ import com.example.bankflow.presentation.components.SkeletonTransactionRow
 import com.example.bankflow.presentation.components.TransactionRow
 import org.koin.androidx.compose.koinViewModel
 import com.example.bankflow.domain.model.Transaction
+import com.example.bankflow.presentation.components.AnimatedAmount
+import com.example.bankflow.presentation.components.SavedDataNotice
 
 @Composable
 fun DashboardScreen(
@@ -90,6 +92,7 @@ fun DashboardContent(
                         }
                     }
                 } else {
+                    state.savedAt?.let { savedAt -> item(key = "saved_notice") { SavedDataNotice(savedAt) } }
                     state.error?.let { error ->
                         item { InlineError(error, onRetry = { onIntent(DashboardIntent.Refresh) }) }
                     }
@@ -102,7 +105,7 @@ fun DashboardContent(
                     if (dashboard.accounts.isEmpty()) {
                         item { EmptyState("No accounts yet", "Your accounts will show up here.") }
                     } else {
-                        items(dashboard.accounts, key = { it.id }) { account ->
+                        items(dashboard.accounts, key = { it.id }, contentType = { "account" }) { account ->
                             AccountCard(account = account, onClick = { onAccountClick(account.id) })
                         }
                     }
@@ -111,8 +114,12 @@ fun DashboardContent(
                     if (dashboard.recentTransactions.isEmpty()) {
                         item { EmptyState("No transactions yet", "Your activity will show up here.") }
                     } else {
-                        items(dashboard.recentTransactions, key = { it.key }) { transaction ->
-                            TransactionRow(transaction, onClick = { onTransactionClick(transaction) })
+                        items(dashboard.recentTransactions, key = { it.key }, contentType = { "transaction" }) { transaction ->
+                            TransactionRow(
+                                transaction = transaction,
+                                modifier = Modifier.animateItem(),
+                                onClick = { onTransactionClick(transaction) },
+                            )
                         }
                     }
                 }
@@ -130,7 +137,7 @@ private fun BalanceHeader(totals: List<Money>) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         totals.forEach { total ->
-            Text(total.format(), style = MaterialTheme.typography.headlineLarge)
+            AnimatedAmount(total.format(), MaterialTheme.typography.headlineLarge)
         }
     }
 }

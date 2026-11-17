@@ -6,6 +6,7 @@ import com.example.bankflow.domain.model.Transaction
 import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
+import java.time.Instant
 
 data class AccountDetailsState(
     val account: Account? = null,
@@ -19,6 +20,7 @@ data class AccountDetailsState(
     val isLoadingMore: Boolean = false,
     val loadError: AppError? = null,
     val loadMoreError: AppError? = null,
+    val savedAt: Instant? = null,
 ) : UiState {
     val endReached: Boolean get() = hasLoaded && nextCursor == null
     val isEmpty: Boolean get() = hasLoaded && items.isEmpty()

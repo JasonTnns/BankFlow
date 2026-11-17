@@ -47,9 +47,11 @@ import com.example.bankflow.presentation.accounts.filter.activeChips
 import com.example.bankflow.presentation.accounts.filter.without
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.components.AnimatedAmount
 import com.example.bankflow.presentation.components.EmptyState
 import com.example.bankflow.presentation.components.ErrorState
 import com.example.bankflow.presentation.components.InlineError
+import com.example.bankflow.presentation.components.SavedDataNotice
 import com.example.bankflow.presentation.components.SectionTitle
 import com.example.bankflow.presentation.components.SkeletonHeader
 import com.example.bankflow.presentation.components.SkeletonTransactionRow
@@ -136,11 +138,11 @@ fun AccountDetailsContent(
                 ) {
                     item(key = "header") { AccountHeader(state.account) }
                     item(key = "title") { SectionTitle("Transactions") }
+                    state.savedAt?.let { savedAt -> item(key = "saved_notice") { SavedDataNotice(savedAt) } }
 
                     val loadError = state.loadError
                     when {
-                        state.isInitialLoading -> items(6) { SkeletonTransactionRow() }
-
+                        state.isInitialLoading -> items(6, contentType = { "skeleton" }) { SkeletonTransactionRow() }
                         loadError != null && state.items.isEmpty() -> item(key = "error") {
                             ErrorState(loadError, onRetry = { onIntent(AccountDetailsIntent.Refresh) })
                         }
@@ -165,8 +167,12 @@ fun AccountDetailsContent(
                                 }
                             }
 
-                            items(state.items, key = { it.key }) { transaction ->
-                                TransactionRow(transaction, onClick = { onTransactionClick(transaction) })
+                            items(state.items, key = { it.key }, contentType = { "transaction" }) { transaction ->
+                                TransactionRow(
+                                    transaction = transaction,
+                                    modifier = Modifier.animateItem(),
+                                    onClick = { onTransactionClick(transaction) },
+                                )
                             }
 
                             val moreError = state.loadMoreError
@@ -231,6 +237,5 @@ private fun AccountHeader(account: Account?) {
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        Text(account.balance.format(), style = MaterialTheme.typography.headlineLarge)
-    }
+        AnimatedAmount(account.balance.format(), MaterialTheme.typography.headlineLarge)    }
 }

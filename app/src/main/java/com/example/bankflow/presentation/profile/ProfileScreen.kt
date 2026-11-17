@@ -66,6 +66,7 @@ import com.example.bankflow.presentation.common.userMessage
 import com.example.bankflow.presentation.components.ErrorState
 import com.example.bankflow.presentation.components.InlineError
 import com.example.bankflow.presentation.components.SectionTitle
+import com.example.bankflow.presentation.security.SecuritySection
 import org.koin.androidx.compose.koinViewModel
 
 
@@ -85,6 +86,7 @@ fun ProfileScreen(
         onOpenRecipients = onOpenRecipients,
         onLogout = onLogout,
         appVersion = BuildConfig.VERSION_NAME,
+        securitySection = { SecuritySection() },
     )
 }
 
@@ -95,6 +97,7 @@ fun ProfileContent(
     onOpenRecipients: () -> Unit,
     onLogout: () -> Unit,
     appVersion: String,
+    securitySection: @Composable () -> Unit = {},
 ) {
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
 
@@ -110,6 +113,7 @@ fun ProfileContent(
                     onOpenRecipients = onOpenRecipients,
                     onLogoutClick = { confirmLogout = true },
                     appVersion = appVersion,
+                    securitySection = securitySection,
                 )
                 state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier
@@ -158,6 +162,7 @@ private fun ProfileBody(
     onOpenRecipients: () -> Unit,
     onLogoutClick: () -> Unit,
     appVersion: String,
+    securitySection: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -211,7 +216,7 @@ private fun ProfileBody(
                 }
             }
         }
-
+        securitySection()
         SectionTitle("Payments")
         Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Row(

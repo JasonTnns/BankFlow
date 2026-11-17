@@ -5,6 +5,7 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.Account
 import com.example.bankflow.domain.model.AccountStatus
 import com.example.bankflow.domain.model.AccountType
+import com.example.bankflow.domain.model.Cached
 import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.Counterparty
 import com.example.bankflow.domain.model.Dashboard
@@ -79,6 +80,13 @@ val TEST_DASHBOARD = Dashboard(
 )
 
 class StubAccountRepository : AccountRepository {
+    var cachedDashboard: Cached<Dashboard>? = null
+    var cachedAccount: Cached<Account>? = null
+    var cachedHistory: Cached<TransactionPage>? = null
+
+    override suspend fun getCachedDashboard(): Cached<Dashboard>? = cachedDashboard
+    override suspend fun getCachedAccount(accountId: String): Cached<Account>? = cachedAccount
+    override suspend fun getCachedTransactions(accountId: String): Cached<TransactionPage>? = cachedHistory
 
     data class TransactionCall(
         val accountId: String,

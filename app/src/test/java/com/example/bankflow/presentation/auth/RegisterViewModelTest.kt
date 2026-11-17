@@ -1,10 +1,12 @@
 package com.example.bankflow.presentation.auth
 
+import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.usecase.RegisterUseCase
 import com.example.bankflow.presentation.auth.register.RegisterIntent
 import com.example.bankflow.presentation.auth.register.RegisterViewModel
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.testutil.MainDispatcherRule
 import com.example.bankflow.testutil.StubAuthRepository
 import kotlinx.coroutines.CompletableDeferred
@@ -51,6 +53,7 @@ class RegisterViewModelTest {
     @Test
     fun `an email that is already registered is shown under the email field, not in a banner`() {
         repository.registerResult = AppResult.Failure(AppError.EmailTaken)
+        assertEquals(UiText.Res(R.string.error_email_taken), viewModel.state.value.emailError)
         fill()
 
         viewModel.onIntent(RegisterIntent.Submit)
@@ -96,6 +99,7 @@ class RegisterViewModelTest {
         repository.registerResult = AppResult.Failure(
             AppError.Validation(fieldErrors = mapOf("email" to listOf("Enter a valid email address"))),
         )
+        assertEquals(UiText.Plain("Enter a valid email address"), viewModel.state.value.emailError)
         fill()
 
         viewModel.onIntent(RegisterIntent.Submit)

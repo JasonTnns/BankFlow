@@ -25,7 +25,7 @@ class AccountDetailsViewModel(
     private val getAccounts: GetAccountsUseCase,
     private val getTransactions: GetTransactionsUseCase,
     changes: AccountChangeNotifier,
-) : MviViewModel<AccountDetailsState, AccountDetailsIntent, NoEffect>(AccountDetailsState()) {
+) : MviViewModel<AccountDetailsState, AccountDetailsIntent, NoEffect>(AccountDetailsState(isInitialLoading = true)) {
 
     private var listJob: Job? = null
     private var accountJob: Job? = null
@@ -36,10 +36,25 @@ class AccountDetailsViewModel(
     )
 
     init {
-        loadAccount()
-        reload(keepItems = false)
         observeSearch()
-        viewModelScope.launch { changes.changes.collect { handleIntent(AccountDetailsIntent.Refresh) } }
+        viewModelScope.launch {
+            val savedPage = getTransactions.cached(accountId)
+            val savedAccount = getAccounts.cached(accountId)
+            if (savedPage != null || savedAccount != null) {
+                setState {
+                    copy(
+                        account = account ?: savedAccount?.value,
+                        items = savedPage?.value?.items ?: items,
+                        nextCursor = savedPage?.value?.nextCursor ?: nextCursor,
+                        hasLoaded = hasLoaded || savedPage != null,
+                        savedAt = savedPage?.savedAt,
+                    )
+                }
+            }
+            loadAccount()
+            reload(keepItems = savedPage != null)
+            changes.changes.collect { handleIntent(AccountDetailsIntent.Refresh) }
+        }
     }
 
     override fun handleIntent(intent: AccountDetailsIntent) {
@@ -66,7 +81,6 @@ class AccountDetailsViewModel(
             }
         }
     }
-
 
     private fun observeSearch() {
         viewModelScope.launch {
@@ -107,6 +121,7 @@ class AccountDetailsViewModel(
                 isLoadingMore = false,
                 loadError = null,
                 loadMoreError = null,
+                savedAt = if (keepItems) savedAt else null,
             )
         }
 
@@ -122,6 +137,7 @@ class AccountDetailsViewModel(
                         isInitialLoading = false,
                         isRefreshing = false,
                         loadError = null,
+                        savedAt = null,
                     )
                 }
                 is AppResult.Failure -> setState {

@@ -2,6 +2,7 @@ package com.example.bankflow.domain.usecase
 
 import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.Account
+import com.example.bankflow.domain.model.Cached
 import com.example.bankflow.domain.repository.AccountRepository
 import org.koin.core.annotation.Factory
 
@@ -13,4 +14,6 @@ class GetAccountsUseCase(
 
     suspend operator fun invoke(accountId: String): AppResult<Account> =
         accountRepository.getAccount(accountId)
+
+    suspend fun cached(accountId: String): Cached<Account>? = accountRepository.getCachedAccount(accountId)
 }

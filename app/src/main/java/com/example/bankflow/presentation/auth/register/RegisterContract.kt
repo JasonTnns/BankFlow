@@ -3,9 +3,10 @@ package com.example.bankflow.presentation.auth.register
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.presentation.common.fieldError
 import com.example.bankflow.presentation.common.toBanner
-import com.example.bankflow.presentation.common.userMessage
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
+import com.example.bankflow.presentation.common.UiText
+import com.example.bankflow.presentation.common.userText
 
 data class RegisterState(
     val fullName: String = "",
@@ -17,9 +18,9 @@ data class RegisterState(
 ) : UiState {
     val fullNameError: String? get() = error.fieldError("fullName")
 
-    val emailError: String?
-        get() = error.fieldError("email")
-            ?: if (error == AppError.EmailTaken) AppError.EmailTaken.userMessage() else null
+    val emailError: UiText?
+        get() = error.fieldError("email")?.let { UiText.Plain(it) }
+            ?: if (error == AppError.EmailTaken) AppError.EmailTaken.userText() else null
 
     val passwordError: String? get() = error.fieldError("password")
     val banner: AppError? get() = error.toBanner()

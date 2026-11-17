@@ -1,5 +1,6 @@
 package com.example.bankflow.presentation.navigation
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -33,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.User
 import com.example.bankflow.presentation.accounts.AccountDetailsScreen
 import com.example.bankflow.presentation.auth.login.LoginScreen
@@ -86,11 +89,11 @@ private fun AuthNavHost() {
         }
     }
 }
-private enum class TopLevelTab(val route: Any, val label: String, val icon: ImageVector) {
-    HOME(DashboardRoute, "Home", Icons.Filled.Home),
-    TRANSFER(TransferRoute, "Transfer", Icons.Filled.SwapHoriz),
-    INSIGHTS(InsightsRoute, "Insights", Icons.Filled.BarChart),
-    PROFILE(ProfileRoute, "Profile", Icons.Filled.Person);
+private enum class TopLevelTab(val route: Any, @StringRes val labelRes: Int, val icon: ImageVector) {
+    HOME(DashboardRoute, R.string.tab_home, Icons.Filled.Home),
+    TRANSFER(TransferRoute, R.string.tab_transfer, Icons.Filled.SwapHoriz),
+    INSIGHTS(InsightsRoute, R.string.tab_insights, Icons.Filled.BarChart),
+    PROFILE(ProfileRoute, R.string.tab_profile, Icons.Filled.Person);
 
     fun matches(currentRoute: String?): Boolean {
         val name = route::class.qualifiedName ?: return false
@@ -123,7 +126,7 @@ private fun MainNavHost(user: User, onLogout: () -> Unit) {
                             selected = tab.matches(currentRoute),
                             onClick = { navController.navigateToTab(tab.route) },
                             icon = { Icon(tab.icon, contentDescription = null) },
-                            label = { Text(tab.label) },
+                            label = { Text(stringResource(tab.labelRes)) },
                             modifier = Modifier.testTag("tab_${tab.name}"),
                         )
                     }

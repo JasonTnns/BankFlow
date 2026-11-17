@@ -1,43 +1,52 @@
 package com.example.bankflow.presentation.common
 
+import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.model.Money
+import com.example.bankflow.presentation.transfer.transferFailureText
+import com.example.bankflow.presentation.transfer.unknownOutcomeText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import java.util.Locale
 
 class ErrorMessagesTest {
 
+    private val everyError = listOf(
+        AppError.NoConnection, AppError.Timeout, AppError.Server(500), AppError.RateLimited,
+        AppError.SessionExpired, AppError.InvalidCredentials, AppError.EmailTaken,
+        AppError.Validation(), AppError.NotFound, AppError.BeneficiaryExists, AppError.InsufficientFunds,
+        AppError.LimitExceeded(), AppError.SameAccount, AppError.AccountInactive,
+        AppError.CurrencyMismatch, AppError.IdempotencyConflict, AppError.Unknown(),
+    )
+
     @Test
-    fun `every error has a non-blank message`() {
-        val errors = listOf(
-            AppError.NoConnection, AppError.Timeout, AppError.Server(500), AppError.RateLimited,
-            AppError.SessionExpired, AppError.InvalidCredentials, AppError.EmailTaken,
-            AppError.Validation(), AppError.NotFound, AppError.InsufficientFunds,
-            AppError.LimitExceeded(), AppError.SameAccount, AppError.AccountInactive,
-            AppError.CurrencyMismatch, AppError.IdempotencyConflict, AppError.Unknown(),
-            AppError.BeneficiaryExists,
-        )
-        errors.forEach { assertTrue("$it", it.userMessage(Locale.US).isNotBlank()) }
+    fun `every error has its own message`() {
+        everyError.forEach { error ->
+            val text = error.userText()
+            assertTrue("$error", text is UiText.Res && text.id != 0)
+        }
     }
 
     @Test
     fun `limit exceeded tells the user how much they can still send`() {
-        val message = AppError.LimitExceeded(remaining = Money(50_000)).userMessage(Locale.US)
-        assertTrue(message, message.contains("$500.00"))
+        val text = AppError.LimitExceeded(remaining = Money(50_000)).userText()
+
+        assertEquals(UiText.Res(R.string.error_limit_exceeded_with_remaining, listOf(Money(50_000))), text)
     }
 
     @Test
     fun `limit exceeded without details still makes sense`() {
-        assertEquals("This transfer is over your daily limit.", AppError.LimitExceeded().userMessage(Locale.US))
+        assertEquals(UiText.Res(R.string.error_limit_exceeded), AppError.LimitExceeded().userText())
     }
 
     @Test
-    fun `raw server messages are never leaked, only validation text we control`() {
-        assertEquals("Something went wrong on our side. Please try again.", AppError.Server(502).userMessage())
-        assertEquals("Please check the highlighted fields.", AppError.Validation().userMessage())
+    fun `raw server messages are never leaked, only validation text our own rules produce`() {
+        assertEquals(UiText.Res(R.string.error_server), AppError.Server(502).userText())
+        assertEquals(UiText.Res(R.string.error_unknown), AppError.Unknown("stack trace here").userText())
+        assertEquals(UiText.Res(R.string.error_validation), AppError.Validation().userText())
+        assertEquals(UiText.Res(R.string.error_validation), AppError.Validation(message = "  ").userText())
+        assertEquals(UiText.Plain("Password is too short"), AppError.Validation(message = "Password is too short").userText())
     }
 
     @Test
@@ -48,5 +57,21 @@ class ErrorMessagesTest {
         assertNull(error.fieldError("password"))
         assertNull((AppError.NoConnection as AppError).fieldError("email"))
         assertNull(null.fieldError("email"))
+    }
+
+    @Test
+    fun `a rejected transfer is explained, and malformed details get their own message`() {
+        assertEquals(UiText.Res(R.string.error_insufficient_funds), AppError.InsufficientFunds.transferFailureText())
+        assertEquals(UiText.Res(R.string.transfer_failure_validation), AppError.Validation().transferFailureText())
+    }
+
+    @Test
+    fun `an unknown outcome says it could not be confirmed and that retrying is safe`() {
+        fun lead(error: AppError) = (error.unknownOutcomeText() as UiText.Res).args.single()
+
+        assertEquals(UiText.Res(R.string.unknown_outcome_lost_connection), lead(AppError.NoConnection))
+        assertEquals(UiText.Res(R.string.unknown_outcome_slow), lead(AppError.Timeout))
+        assertEquals(UiText.Res(R.string.unknown_outcome_generic), lead(AppError.Server(502)))
+        assertEquals(R.string.unknown_outcome_format, (AppError.Timeout.unknownOutcomeText() as UiText.Res).id)
     }
 }

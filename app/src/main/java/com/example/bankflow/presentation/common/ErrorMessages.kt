@@ -1,29 +1,33 @@
 package com.example.bankflow.presentation.common
 
+import androidx.compose.runtime.Composable
+import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
-import java.util.Locale
 
-fun AppError.userMessage(locale: Locale = Locale.getDefault()): String = when (this) {
-    AppError.NoConnection -> "No internet connection. Check your network and try again."
-    AppError.Timeout -> "The request took too long. Please try again."
-    is AppError.Server -> "Something went wrong on our side. Please try again."
-    AppError.RateLimited -> "Too many attempts. Please wait a moment and try again."
-    AppError.SessionExpired -> "Your session has expired. Please sign in again."
-    AppError.InvalidCredentials -> "Incorrect email or password."
-    AppError.EmailTaken -> "An account with this email already exists."
-    is AppError.Validation -> message?.takeIf { it.isNotBlank() } ?: "Please check the highlighted fields."
-    AppError.NotFound -> "We couldn't find that."
-    AppError.BeneficiaryExists -> "This recipient is already saved."
-    AppError.InsufficientFunds -> "You don't have enough funds for this transfer."
+fun AppError.userText(): UiText = when (this) {
+    AppError.NoConnection -> UiText.Res(R.string.error_no_connection)
+    AppError.Timeout -> UiText.Res(R.string.error_timeout)
+    is AppError.Server -> UiText.Res(R.string.error_server)
+    AppError.RateLimited -> UiText.Res(R.string.error_rate_limited)
+    AppError.SessionExpired -> UiText.Res(R.string.error_session_expired)
+    AppError.InvalidCredentials -> UiText.Res(R.string.error_invalid_credentials)
+    AppError.EmailTaken -> UiText.Res(R.string.error_email_taken)
+    is AppError.Validation -> message?.takeIf { it.isNotBlank() }?.let { UiText.Plain(it) }
+        ?: UiText.Res(R.string.error_validation)
+    AppError.NotFound -> UiText.Res(R.string.error_not_found)
+    AppError.BeneficiaryExists -> UiText.Res(R.string.error_beneficiary_exists)
+    AppError.InsufficientFunds -> UiText.Res(R.string.error_insufficient_funds)
     is AppError.LimitExceeded -> remaining
-        ?.let { "This is over your daily limit. You can still send up to ${it.format(locale)} today." }
-        ?: "This transfer is over your daily limit."
-    AppError.SameAccount -> "Choose two different accounts."
-    AppError.AccountInactive -> "One of the accounts can't be used right now."
-    AppError.CurrencyMismatch -> "Both accounts must use the same currency."
-    AppError.IdempotencyConflict -> "This transfer was already submitted with different details. Start a new one."
-    is AppError.Unknown -> "Something unexpected happened. Please try again."
+        ?.let { UiText.Res(R.string.error_limit_exceeded_with_remaining, listOf(it)) }
+        ?: UiText.Res(R.string.error_limit_exceeded)
+    AppError.SameAccount -> UiText.Res(R.string.error_same_account)
+    AppError.AccountInactive -> UiText.Res(R.string.error_account_inactive)
+    AppError.CurrencyMismatch -> UiText.Res(R.string.error_currency_mismatch)
+    AppError.IdempotencyConflict -> UiText.Res(R.string.error_idempotency_conflict)
+    is AppError.Unknown -> UiText.Res(R.string.error_unknown)
 }
 
+@Composable
+fun AppError.userMessage(): String = userText().resolve()
 fun AppError?.fieldError(field: String): String? =
     (this as? AppError.Validation)?.fieldErrors?.get(field)?.firstOrNull()

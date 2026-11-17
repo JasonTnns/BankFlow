@@ -2,6 +2,7 @@ package com.example.bankflow.presentation.accounts
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.model.Cached
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.domain.model.TransactionPage
@@ -24,6 +25,7 @@ import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import java.time.Instant
 
 class AccountDetailsViewModelTest {
 
@@ -387,5 +389,58 @@ class AccountDetailsViewModelTest {
         assertEquals(listOf("new", "t1", "t2"), viewModel.ids())
         assertFalse(viewModel.state.value.isRefreshing)
         assertEquals(2, repository.transactionCalls.size)
+    }
+
+    private val savedAt = Instant.parse("2026-10-29T09:00:00Z")
+
+    @Test
+    fun `saved history shows at once while the fresh page loads, then is replaced`() {
+        repository.cachedHistory = Cached(testPage("old1", "old2", next = "c0"), savedAt)
+        pages[null] = AppResult.Success(testPage("n1", next = null))
+        val gate = CompletableDeferred<Unit>().also { gates[null] = it }
+
+        val viewModel = viewModel()
+
+        assertEquals(listOf("old1", "old2"), viewModel.ids())
+        assertEquals(savedAt, viewModel.state.value.savedAt)
+        assertTrue(viewModel.state.value.isRefreshing)
+        assertFalse(viewModel.state.value.isInitialLoading)
+
+        gate.complete(Unit)
+
+        assertEquals(listOf("n1"), viewModel.ids())
+        assertNull(viewModel.state.value.savedAt)
+    }
+
+    @Test
+    fun `the saved account header is used until the live one arrives`() {
+        repository.cachedAccount = Cached(TEST_ACCOUNT, savedAt)
+        repository.accountResult = AppResult.Failure(AppError.NoConnection)
+
+        assertEquals(TEST_ACCOUNT, viewModel().state.value.account)
+    }
+
+    @Test
+    fun `a failed refresh keeps the saved list, marked as saved`() {
+        repository.cachedHistory = Cached(testPage("old1"), savedAt)
+        pages[null] = AppResult.Failure(AppError.NoConnection)
+
+        val viewModel = viewModel()
+
+        assertEquals(listOf("old1"), viewModel.ids())
+        assertEquals(savedAt, viewModel.state.value.savedAt)
+        assertEquals(AppError.NoConnection, viewModel.state.value.loadError)
+    }
+
+    @Test
+    fun `a new filter drops the saved marker, because the list is no longer the saved one`() {
+        repository.cachedHistory = Cached(testPage("old1"), savedAt)
+        pages[null] = AppResult.Failure(AppError.NoConnection)
+        val viewModel = viewModel()
+
+        viewModel.onIntent(AccountDetailsIntent.ApplyFilter(TransactionFilter(direction = Direction.OUT)))
+
+        assertNull(viewModel.state.value.savedAt)
+        assertTrue(viewModel.state.value.items.isEmpty())
     }
 }

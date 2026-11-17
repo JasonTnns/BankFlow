@@ -1,18 +1,28 @@
 package com.example.bankflow.presentation.transfer
 
+import androidx.compose.runtime.Composable
+import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
-import com.example.bankflow.presentation.common.userMessage
+import com.example.bankflow.presentation.common.UiText
+import com.example.bankflow.presentation.common.resolve
+import com.example.bankflow.presentation.common.userText
 
-fun AppError.transferFailureMessage(): String = when (this) {
-    is AppError.Validation -> "Some details of this transfer weren't accepted. Please check them and try again."
-    else -> userMessage()
+fun AppError.transferFailureText(): UiText = when (this) {
+    is AppError.Validation -> UiText.Res(R.string.transfer_failure_validation)
+    else -> userText()
 }
 
-fun AppError.unknownOutcomeMessage(): String {
+fun AppError.unknownOutcomeText(): UiText {
     val lead = when (this) {
-        AppError.NoConnection -> "We lost the connection while sending your transfer."
-        AppError.Timeout -> "Your transfer is taking longer than expected."
-        else -> "Something went wrong while sending your transfer."
+        AppError.NoConnection -> R.string.unknown_outcome_lost_connection
+        AppError.Timeout -> R.string.unknown_outcome_slow
+        else -> R.string.unknown_outcome_generic
     }
-    return "$lead We couldn't confirm whether it went through. It's safe to try again: it won't be sent twice."
+    return UiText.Res(R.string.unknown_outcome_format, listOf(UiText.Res(lead)))
 }
+
+@Composable
+fun AppError.transferFailureMessage(): String = transferFailureText().resolve()
+
+@Composable
+fun AppError.unknownOutcomeMessage(): String = unknownOutcomeText().resolve()

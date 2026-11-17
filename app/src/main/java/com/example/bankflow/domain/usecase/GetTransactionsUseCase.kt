@@ -2,6 +2,7 @@ package com.example.bankflow.domain.usecase
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.model.Cached
 import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.domain.model.TransactionPage
 import com.example.bankflow.domain.repository.AccountRepository
@@ -18,6 +19,8 @@ class GetTransactionsUseCase(
         cursor: String? = null,
         limit: Int = DEFAULT_PAGE_SIZE,
     ): AppResult<TransactionPage> {
+        suspend fun cached(accountId: String): Cached<TransactionPage>? =
+            accountRepository.getCachedTransactions(accountId)
         val fields = linkedMapOf<String, List<String>>()
 
         if (filter.from != null && filter.to != null && filter.from.isAfter(filter.to)) {

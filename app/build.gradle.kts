@@ -23,16 +23,19 @@ android {
 
     buildTypes {
         debug {
-            // 10.0.2.2 is the emulator's alias for your PC's localhost.
-            // On a physical phone use your PC's LAN IP, e.g. "http://192.168.1.20:3000/api/v1/".
-            // The trailing slash matters: the API client appends relative paths to this URL.
             buildConfigField("String", "API_BASE_URL", "\"http://10.0.2.2:3000/api/v1/\"")
         }
         release {
-            // Minification needs keep rules for serialization/Ktor; enabled in the polish phase.
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             buildConfigField("String", "API_BASE_URL", "\"https://api.bankflow.example/api/v1/\"")
+        }
+        create("minified") {
+            initWith(getByName("debug"))
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            matchingFallbacks += listOf("debug")
         }
     }
 
@@ -48,8 +51,8 @@ android {
 
     testOptions {
         unitTests {
-            // android.util.Log etc. return defaults instead of throwing in JVM unit tests.
             isReturnDefaultValues = true
+            isIncludeAndroidResources = true
         }
     }
 
@@ -66,8 +69,13 @@ kotlin {
         jvmTarget.set(JvmTarget.JVM_17)
     }
 }
+composeCompiler {
+    if (providers.gradleProperty("composeReports").isPresent) {
+        reportsDestination = layout.buildDirectory.dir("compose_compiler")
+        metricsDestination = layout.buildDirectory.dir("compose_compiler")
+    }
+}
 
-// Room writes its schema JSON here; commit these files to track database versions.
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
     arg("room.schemaLocation", "$projectDir/schemas")
@@ -75,6 +83,10 @@ ksp {
 }
 
 dependencies {
+
+    implementation(libs.androidx.biometric)
+
+
     implementation(libs.koin.annotations)
     ksp(libs.koin.ksp.compiler)
     // AndroidX

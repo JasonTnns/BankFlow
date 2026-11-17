@@ -32,6 +32,7 @@ import com.example.bankflow.presentation.auth.AuthTextField
 import com.example.bankflow.presentation.auth.ErrorBanner
 import com.example.bankflow.presentation.auth.LoadingButton
 import com.example.bankflow.presentation.auth.PasswordField
+import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.userMessage
 import org.koin.androidx.compose.koinViewModel
 
@@ -98,7 +99,7 @@ fun RegisterContent(
                 label = "Email",
                 modifier = Modifier.testTag("register_email"),
                 enabled = !state.isLoading,
-                errorText = state.emailError,
+                errorText = state.emailError?.resolve(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     capitalization = KeyboardCapitalization.None,

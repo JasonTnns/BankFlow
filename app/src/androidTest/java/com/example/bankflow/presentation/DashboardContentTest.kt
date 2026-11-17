@@ -1,8 +1,10 @@
 package com.example.bankflow.presentation
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -16,6 +18,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.Instant
 
 @RunWith(AndroidJUnit4::class)
 class DashboardContentTest {
@@ -96,5 +99,19 @@ class DashboardContentTest {
         composeRule.onNodeWithContentDescription("Log out").performClick()
 
         assertEquals(1, logouts)
+    }
+
+    @Test
+    fun savedDataIsLabelledAsSuchWithItsAge() {
+        show(DashboardState(dashboard = UI_DASHBOARD, savedAt = Instant.now().minusSeconds(300)))
+
+        composeRule.onNodeWithTag("saved_notice").assertTextEquals("Showing saved data from 5 min ago")
+    }
+
+    @Test
+    fun freshDataHasNoSavedNotice() {
+        show(DashboardState(dashboard = UI_DASHBOARD))
+
+        composeRule.onNodeWithTag("saved_notice").assertDoesNotExist()
     }
 }

@@ -1,4 +1,5 @@
 package com.example.bankflow.presentation.dashboard
+
 import androidx.lifecycle.viewModelScope
 import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.repository.AccountChangeNotifier
@@ -14,14 +15,20 @@ import org.koin.android.annotation.KoinViewModel
 class DashboardViewModel(
     private val getDashboard: GetDashboardUseCase,
     changes: AccountChangeNotifier,
-) : MviViewModel<DashboardState, DashboardIntent, NoEffect>(DashboardState()) {
+) : MviViewModel<DashboardState, DashboardIntent, NoEffect>(DashboardState(isLoading = true)) {
 
     private var loadJob: Job? = null
 
     init {
-        load()
-
-        viewModelScope.launch { changes.changes.collect { load(force = true) } }
+        viewModelScope.launch {
+            getDashboard.cached()?.let { saved ->
+                setState {
+                    if (dashboard == null) copy(dashboard = saved.value, savedAt = saved.savedAt, isLoading = false) else this
+                }
+            }
+            load()
+            changes.changes.collect { load(force = true) }
+        }
     }
 
     override fun handleIntent(intent: DashboardIntent) {
@@ -31,21 +38,19 @@ class DashboardViewModel(
     }
 
     private fun load(force: Boolean = false) {
-        val current = currentState
-        if (!force && (current.isLoading || current.isRefreshing)) return // one request at a time
+        if (!force && loadJob?.isActive == true) return
 
         loadJob?.cancel()
-        val hasData = current.dashboard != null
+        val hasData = currentState.dashboard != null
         setState { copy(isLoading = !hasData, isRefreshing = hasData, error = null) }
 
         loadJob = viewModelScope.launch {
             val result = getDashboard()
-            ensureActive() // a response that arrives after we moved on must not be applied
+            ensureActive()
             when (result) {
                 is AppResult.Success -> setState {
-                    copy(dashboard = result.value, isLoading = false, isRefreshing = false, error = null)
+                    copy(dashboard = result.value, savedAt = null, isLoading = false, isRefreshing = false, error = null)
                 }
-                // Keep whatever data we already had; only the error is new.
                 is AppResult.Failure -> setState {
                     copy(isLoading = false, isRefreshing = false, error = result.error)
                 }
