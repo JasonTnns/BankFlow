@@ -6,8 +6,12 @@ import com.example.bankflow.domain.repository.AuthRepository
 import com.example.bankflow.domain.security.AppLockSettings
 import com.example.bankflow.domain.security.BiometricAvailability
 import com.example.bankflow.domain.security.BiometricSupport
+import com.example.bankflow.domain.security.SessionVault
+import com.example.bankflow.domain.security.UnlockResult
+import com.example.bankflow.domain.security.VaultState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.io.IOException
 
 class FakeAppLockSettings(initial: Boolean = false) : AppLockSettings {
@@ -34,5 +38,37 @@ class MutableAuthRepository(initial: User? = TEST_USER) : AuthRepository {
     override suspend fun login(email: String, password: String): AppResult<User> = error("not used")
     override suspend fun logout() {
         user.value = null
+    }
+}
+
+class FakeSessionVault(initial: VaultState = VaultState.OPEN) : SessionVault {
+    val stateFlow = MutableStateFlow(initial)
+    override val state: StateFlow<VaultState> = stateFlow
+
+    var unlockResult = UnlockResult.SUCCESS
+    var protectError: Exception? = null
+    var unprotectError: Exception? = null
+    var unlocks = 0
+    var protects = 0
+    var unprotects = 0
+
+    override suspend fun unlock(): UnlockResult {
+        unlocks++
+        when (unlockResult) {
+            UnlockResult.SUCCESS -> stateFlow.value = VaultState.OPEN
+            UnlockResult.KEY_INVALIDATED -> stateFlow.value = VaultState.EMPTY
+            UnlockResult.AUTHENTICATION_REQUIRED -> Unit
+        }
+        return unlockResult
+    }
+
+    override suspend fun protect() {
+        protectError?.let { throw it }
+        protects++
+    }
+
+    override suspend fun unprotect() {
+        unprotectError?.let { throw it }
+        unprotects++
     }
 }

@@ -4,8 +4,10 @@ import app.cash.turbine.test
 import com.example.bankflow.domain.security.AuthFailure
 import com.example.bankflow.domain.security.AuthOutcome
 import com.example.bankflow.domain.security.BiometricAvailability
+import com.example.bankflow.domain.security.VaultException
 import com.example.bankflow.testutil.FakeAppLockSettings
 import com.example.bankflow.testutil.FakeBiometricSupport
+import com.example.bankflow.testutil.FakeSessionVault
 import com.example.bankflow.testutil.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -22,8 +24,9 @@ class SecurityViewModelTest {
 
     private val settings = FakeAppLockSettings(initial = false)
     private val biometrics = FakeBiometricSupport()
+    private val vault = FakeSessionVault()
 
-    private fun viewModel() = SecurityViewModel(settings, biometrics)
+    private fun viewModel() = SecurityViewModel(settings, biometrics, vault)
 
     @Test
     fun `the state shows the stored setting and what this device can do`() {
@@ -48,16 +51,18 @@ class SecurityViewModelTest {
 
         assertFalse(viewModel.state.value.enabled)
         assertFalse(settings.state.value)
+        assertEquals(0, vault.protects)
     }
 
     @Test
-    fun `a successful verification switches it on`() {
+    fun `a successful verification protects the key and switches the lock on`() {
         val viewModel = viewModel()
 
         viewModel.onIntent(SecurityIntent.AuthResult(enable = true, outcome = AuthOutcome.Success))
 
         assertTrue(viewModel.state.value.enabled)
         assertTrue(settings.state.value)
+        assertEquals(1, vault.protects)
         assertFalse(viewModel.state.value.isSaving)
     }
 
@@ -69,6 +74,7 @@ class SecurityViewModelTest {
 
         assertFalse(viewModel.state.value.enabled)
         assertNull(viewModel.state.value.failure)
+        assertEquals(0, vault.protects)
     }
 
     @Test
@@ -97,6 +103,19 @@ class SecurityViewModelTest {
     }
 
     @Test
+    fun `a key that cannot be protected leaves the lock off and says it is unavailable`() {
+        vault.protectError = VaultException("no secure screen lock")
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SecurityIntent.AuthResult(true, AuthOutcome.Success))
+
+        assertFalse(settings.state.value)
+        assertFalse(viewModel.state.value.enabled)
+        assertEquals(AuthFailure.UNAVAILABLE, viewModel.state.value.failure)
+        assertFalse(viewModel.state.value.isSaving)
+    }
+
+    @Test
     fun `turning off also asks for verification`() = runTest {
         settings.state.value = true
         val viewModel = viewModel()
@@ -109,7 +128,9 @@ class SecurityViewModelTest {
         assertTrue(settings.state.value)
 
         viewModel.onIntent(SecurityIntent.AuthResult(false, AuthOutcome.Success))
+
         assertFalse(settings.state.value)
+        assertEquals("the key goes back to the plain form", 1, vault.unprotects)
     }
 
     @Test
@@ -126,6 +147,7 @@ class SecurityViewModelTest {
         }
 
         assertFalse(settings.state.value)
+        assertEquals(1, vault.unprotects)
     }
 
     @Test
@@ -158,7 +180,7 @@ class SecurityViewModelTest {
     }
 
     @Test
-    fun `a storage failure leaves the setting as it was and says so`() {
+    fun `if the setting cannot be saved the key protection is undone`() {
         settings.failOnWrite = true
         val viewModel = viewModel()
 
@@ -167,5 +189,19 @@ class SecurityViewModelTest {
         assertFalse(viewModel.state.value.enabled)
         assertEquals(AuthFailure.ERROR, viewModel.state.value.failure)
         assertFalse(viewModel.state.value.isSaving)
+        assertEquals(1, vault.protects)
+        assertEquals("the two never disagree", 1, vault.unprotects)
+    }
+
+    @Test
+    fun `a failed unprotect keeps the lock on`() {
+        settings.state.value = true
+        vault.unprotectError = VaultException("cannot store the key")
+        val viewModel = viewModel()
+
+        viewModel.onIntent(SecurityIntent.AuthResult(false, AuthOutcome.Success))
+
+        assertTrue(settings.state.value)
+        assertEquals(AuthFailure.UNAVAILABLE, viewModel.state.value.failure)
     }
 }

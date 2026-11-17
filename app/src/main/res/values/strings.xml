@@ -59,8 +59,7 @@
     <!-- Security settings -->
     <string name="security_title">Security</string>
     <string name="security_unlock_title">Unlock with biometrics or device PIN</string>
-    <string name="security_unlock_available">Ask for your fingerprint, face or device PIN when you open the app or come back to it.</string>
-    <string name="security_unlock_none_enrolled">Set up a screen lock or fingerprint in your phone\'s settings to use this.</string>
+    <string name="security_unlock_available">Ask for your fingerprint, face or device PIN when you open the app or come back to it, and keep your saved sign-in locked until you do.</string>    <string name="security_unlock_none_enrolled">Set up a screen lock or fingerprint in your phone\'s settings to use this.</string>
     <string name="security_unlock_no_hardware">This device can\'t verify your identity, so app unlock isn\'t available.</string>
     <string name="security_unlock_unavailable">App unlock isn\'t available right now.</string>
     <string name="security_prompt_enable">Turn on app unlock</string>

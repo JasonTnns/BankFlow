@@ -4,6 +4,7 @@ import android.app.Application
 import android.os.StrictMode
 import com.example.bankflow.core.di.AppModule
 import com.example.bankflow.data.local.cache.CacheCleaner
+import com.example.bankflow.data.security.KeyVault
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -26,6 +27,10 @@ class BankFlowApp : Application() {
             androidContext(this@BankFlowApp)
             modules(AppModule().module)
         }.koin
+
+        koin.get<KeyVault>().start(appScope)
+
+        koin.get<CacheCleaner>().start(appScope)
 
         koin.get<CacheCleaner>().start(appScope)
     }

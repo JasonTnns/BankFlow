@@ -6,6 +6,8 @@ import com.example.bankflow.domain.security.AuthFailure
 import com.example.bankflow.domain.security.AuthOutcome
 import com.example.bankflow.domain.security.BiometricAvailability
 import com.example.bankflow.domain.security.BiometricSupport
+import com.example.bankflow.domain.security.SessionVault
+import com.example.bankflow.domain.security.VaultException
 import com.example.bankflow.presentation.mvi.MviViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -15,6 +17,7 @@ import org.koin.android.annotation.KoinViewModel
 class SecurityViewModel(
     private val settings: AppLockSettings,
     private val biometrics: BiometricSupport,
+    private val vault: SessionVault,
 ) : MviViewModel<SecurityState, SecurityIntent, SecurityEffect>(
     SecurityState(availability = biometrics.availability()),
 ) {
@@ -57,13 +60,35 @@ class SecurityViewModel(
         setState { copy(isSaving = true, failure = null) }
         viewModelScope.launch {
             try {
-                settings.setEnabled(enable)
+                if (enable) enableLock() else disableLock()
                 setState { copy(isSaving = false) }
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: VaultException) {
+                setState { copy(isSaving = false, failure = AuthFailure.UNAVAILABLE) }
             } catch (e: Exception) {
                 setState { copy(isSaving = false, failure = AuthFailure.ERROR) }
             }
         }
+    }
+
+    private suspend fun enableLock() {
+        vault.protect()
+        try {
+            settings.setEnabled(true)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            try {
+                vault.unprotect()
+            } catch (undoError: Exception) {
+                if (undoError is CancellationException) throw undoError
+            }
+            throw e
+        }
+    }
+
+    private suspend fun disableLock() {
+        vault.unprotect()
+        settings.setEnabled(false)
     }
 }

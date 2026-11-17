@@ -1,12 +1,17 @@
 package com.example.bankflow.core.security
 
+import android.os.Build
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import com.example.bankflow.domain.security.AuthFailure
 import com.example.bankflow.domain.security.BiometricAvailability
 
 val ALLOWED_AUTHENTICATORS: Int =
-    BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+    } else {
+        BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL
+    }
 
 fun mapBiometricStatus(status: Int): BiometricAvailability = when (status) {
     BiometricManager.BIOMETRIC_SUCCESS -> BiometricAvailability.AVAILABLE
