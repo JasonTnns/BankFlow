@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import com.android.build.api.variant.BuildConfigField
 
 plugins {
     alias(libs.plugins.android.application)
@@ -6,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.baselineprofile)
 }
 
 android {
@@ -69,6 +71,20 @@ kotlin {
         jvmTarget.set(JvmTarget.JVM_17)
     }
 }
+baselineProfile {
+    dexLayoutOptimization = true
+}
+
+androidComponents {
+    onVariants { variant ->
+        if (variant.buildType == "benchmarkRelease" || variant.buildType == "nonMinifiedRelease") {
+            variant.buildConfigFields?.put(
+                "API_BASE_URL",
+                BuildConfigField("String", "\"http://10.0.2.2:3000/api/v1/\"", "local server for profiling"),
+            )
+        }
+    }
+}
 composeCompiler {
     if (providers.gradleProperty("composeReports").isPresent) {
         reportsDestination = layout.buildDirectory.dir("compose_compiler")
@@ -83,6 +99,9 @@ ksp {
 }
 
 dependencies {
+
+    implementation(libs.androidx.profileinstaller)
+    baselineProfile(project(":baselineprofile"))
 
     implementation(libs.androidx.biometric)
 

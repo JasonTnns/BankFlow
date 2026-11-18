@@ -113,6 +113,7 @@ fun TransactionRow(
             .let { if (onClick != null) it.clickable(onClick = onClick) else it }
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .heightIn(min = 48.dp)
+            .testTag("transaction_row")
             .semantics(mergeDescendants = true) { contentDescription = spoken },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -170,6 +171,7 @@ fun AccountCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
+            .testTag("account_card")
             .semantics(mergeDescendants = true) { contentDescription = spoken },
     ) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {

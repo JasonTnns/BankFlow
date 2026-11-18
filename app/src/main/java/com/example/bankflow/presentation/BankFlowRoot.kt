@@ -9,9 +9,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -31,6 +34,7 @@ import com.example.bankflow.presentation.session.SessionViewModel
 import com.example.bankflow.ui.theme.BankFlowTheme
 import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun BankFlowRoot(
     sessionViewModel: SessionViewModel = koinViewModel(),
@@ -52,24 +56,26 @@ fun BankFlowRoot(
     val themePreference = (session as? SessionState.SignedIn)?.user?.themePreference ?: ThemePreference.SYSTEM
 
     BankFlowTheme(themePreference = themePreference) {
-        when {
-            !lock.isReady -> RootSplash()
-            lock.showLock -> LockScreen(
-                failure = lock.failure,
-                isPrompting = isPrompting,
-                onUnlock = {
-                    val activity = context.findActivity() as? FragmentActivity
-                    if (activity != null && !isPrompting) {
-                        isPrompting = true
-                        activity.showAuthPrompt(promptTitle, promptSubtitle) { outcome ->
-                            isPrompting = false
-                            lockViewModel.onIntent(outcome.toIntent())
+        Box(Modifier.fillMaxSize().semantics { testTagsAsResourceId = true }) {
+            when {
+                !lock.isReady -> RootSplash()
+                lock.showLock -> LockScreen(
+                    failure = lock.failure,
+                    isPrompting = isPrompting,
+                    onUnlock = {
+                        val activity = context.findActivity() as? FragmentActivity
+                        if (activity != null && !isPrompting) {
+                            isPrompting = true
+                            activity.showAuthPrompt(promptTitle, promptSubtitle) { outcome ->
+                                isPrompting = false
+                                lockViewModel.onIntent(outcome.toIntent())
+                            }
                         }
-                    }
-                },
-                onLogout = sessionViewModel::logout,
-            )
-            else -> AppNavHost(session = session, onLogout = sessionViewModel::logout)
+                    },
+                    onLogout = sessionViewModel::logout,
+                )
+                else -> AppNavHost(session = session, onLogout = sessionViewModel::logout)
+            }
         }
     }
 }
