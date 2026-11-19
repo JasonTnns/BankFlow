@@ -27,6 +27,7 @@ import com.example.bankflow.presentation.auth.ErrorBanner
 import com.example.bankflow.presentation.auth.LoadingButton
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.uiString
 
 @Composable
@@ -49,7 +50,7 @@ fun TransferReviewContent(
             Text(stringResource(R.string.review_sending), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = request.amount.format(),
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.displaySmall.ltr(),
                 modifier = Modifier.testTag("review_amount"),
             )
             Text(

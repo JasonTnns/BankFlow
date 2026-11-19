@@ -72,6 +72,7 @@ import com.example.bankflow.R
 import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.presentation.common.labelRes
 import com.example.bankflow.presentation.common.lastUpdatedText
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.spokenText
 import com.example.bankflow.presentation.common.subtitleText
@@ -192,10 +193,10 @@ fun AccountCard(
             }
             Text(
                 text = account.maskedNumber,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium.ltr(),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Text(account.balance.format(), style = MaterialTheme.typography.headlineSmall)
+            Text(account.balance.format(), style = MaterialTheme.typography.headlineSmall.ltr())
         }
     }
 }

@@ -8,6 +8,7 @@ import com.example.bankflow.domain.usecase.GetBeneficiariesUseCase
 import com.example.bankflow.testutil.MainDispatcherRule
 import com.example.bankflow.testutil.StubBeneficiaryRepository
 import com.example.bankflow.testutil.testBeneficiary
+import com.example.bankflow.testutil.toArabicIndic
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -282,5 +283,15 @@ class BeneficiariesViewModelTest {
 
         assertEquals(1, repository.deleted.size)
         gate.complete(Unit)
+    }
+
+    @Test
+    fun `the number field accepts digits from other scripts`() {
+        val viewModel = viewModel()
+        viewModel.onIntent(BeneficiariesIntent.OpenAdd)
+
+        viewModel.onIntent(BeneficiariesIntent.NumberChanged("200000000001".toArabicIndic()))
+
+        assertEquals("200000000001", viewModel.state.value.addForm?.accountNumber)
     }
 }

@@ -3,6 +3,8 @@ package com.example.bankflow.presentation.accounts.filter
 import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.TransactionFilter
+import com.example.bankflow.testutil.toArabicIndic
+import com.example.bankflow.testutil.withArabicDecimalSeparator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -115,5 +117,16 @@ class FilterDraftTest {
         assertEquals(86_400_000L, localDateToPickerMillis(LocalDate.of(1970, 1, 2)))
         val day = LocalDate.of(2026, 10, 29)
         assertEquals(day, pickerMillisToLocalDate(localDateToPickerMillis(day)))
+    }
+
+    @Test
+    fun `amounts typed in another script are parsed`() {
+        val filter = FilterDraft(
+            minAmountText = "25".toArabicIndic(),
+            maxAmountText = "100.5".toArabicIndic().withArabicDecimalSeparator(),
+        ).valid()
+
+        assertEquals(2_500L, filter.minAmountMinor)
+        assertEquals(10_050L, filter.maxAmountMinor)
     }
 }

@@ -1,6 +1,5 @@
 <resources>
-    <string name="app_name">BankFlow</string>
-
+    <string name="app_name" translatable="false">BankFlow</string>
     <!-- Actions -->
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>
@@ -22,8 +21,7 @@
     <string name="action_retry">Retry</string>
     <string name="action_log_out">Log out</string>
     <string name="loading">Loading</string>
-    <string name="pair_dot">%1$s · %2$s</string>
-
+    <string name="pair_dot" translatable="false">%1$s · %2$s</string>
     <!-- Dates and ranges -->
     <string name="date_today">Today</string>
     <string name="date_yesterday">Yesterday</string>

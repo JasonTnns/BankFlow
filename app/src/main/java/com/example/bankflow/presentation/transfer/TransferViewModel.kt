@@ -8,6 +8,7 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.common.IdGenerator
 import com.example.bankflow.domain.common.isOutcomeUnknown
+import com.example.bankflow.domain.common.toAsciiDigits
 import com.example.bankflow.domain.model.Account
 import com.example.bankflow.domain.model.AccountStatus
 import com.example.bankflow.domain.model.Money
@@ -231,25 +232,11 @@ class TransferViewModel(
                     )
                 }
             }
-            is TransferDestination.AccountNumber -> when (val lookup = lookupRecipient(target.number)) {
-                is AppResult.Failure ->
-                    if (lookup.error == AppError.NotFound) failure("destination", FieldIssue.DestinationNotFound) else lookup
-                is AppResult.Success -> {
-                    val recipient = lookup.value
-                    when {
-                        recipient.status != AccountStatus.ACTIVE -> AppResult.Failure(AppError.AccountInactive)
-                        recipient.currency != source.balance.currency -> AppResult.Failure(AppError.CurrencyMismatch)
-                        else -> AppResult.Success(
-                            TransferReview(
-                                request = request,
-                                source = source,
-                                recipientName = recipient.displayName,
-                                recipientDetail = recipient.accountNumberMasked,
-                                isOwnAccount = recipient.isOwnAccount,
-                            ),
-                        )
-                    }
-                }
+            is TransferIntent.AccountNumberChanged -> setState {
+                copy(
+                    accountNumber = intent.text.toAsciiDigits().filter { it in '0'..'9' }.take(ACCOUNT_NUMBER_LENGTH),
+                    formError = formError.withoutFieldError("destination"),
+                )
             }
         }
     }
@@ -302,7 +289,7 @@ class TransferViewModel(
     private fun failure(field: String, issue: FieldIssue) = AppResult.Failure(validation(field, issue))
 
     private fun sanitizeAmount(text: String): String {
-        val cleaned = text.replace(',', '.').filter { it.isDigit() || it == '.' }
+        val cleaned = text.toAsciiDigits().replace(',', '.').filter { it in '0'..'9' || it == '.' }
         val firstDot = cleaned.indexOf('.')
         val singleDot = if (firstDot < 0) {
             cleaned

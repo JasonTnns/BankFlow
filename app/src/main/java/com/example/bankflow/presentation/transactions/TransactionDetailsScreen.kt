@@ -51,6 +51,7 @@ import com.example.bankflow.domain.model.Transaction
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.formatDateTime
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.signedAmount
 import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.ErrorState
@@ -145,7 +146,7 @@ private fun DetailsBody(transaction: Transaction) {
             )
             Text(
                 text = transaction.signedAmount(),
-                style = MaterialTheme.typography.headlineLarge,
+                style = MaterialTheme.typography.headlineLarge.ltr(),
                 color = if (isIncoming) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.testTag("details_amount"),
             )
@@ -174,7 +175,7 @@ private fun DetailsBody(transaction: Transaction) {
 }
 
 @Composable
-private fun DetailRow(label: String, value: String, modifier: Modifier = Modifier) {
+private fun DetailRow(label: String, value: String, modifier: Modifier = Modifier, ltr: Boolean = false) {
     Column(modifier = modifier) {
         Row(
             modifier = Modifier
@@ -183,8 +184,8 @@ private fun DetailRow(label: String, value: String, modifier: Modifier = Modifie
                 .semantics(mergeDescendants = true) { },
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(start = 16.dp))
+            Text(label, style = MaterialTheme.typography.bodyMedium.let { if (ltr) it.ltr() else it }, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.bodyMedium.let { if (ltr) it.ltr() else it }, modifier = Modifier.padding(start = 16.dp))
         }
         HorizontalDivider()
     }
@@ -205,7 +206,7 @@ private fun ReferenceRow(reference: String) {
                 Text(stringResource(R.string.details_reference), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     text = reference,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall.ltr(),
                     fontFamily = FontFamily.Monospace,
                     modifier = Modifier.testTag("details_reference"),
                 )

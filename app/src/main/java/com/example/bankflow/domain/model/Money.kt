@@ -1,5 +1,7 @@
 package com.example.bankflow.domain.model
 
+import com.example.bankflow.domain.common.toAsciiDigits
+
 
 data class Money(
     val minorUnits: Long,
@@ -46,7 +48,7 @@ data class Money(
         fun zero(currency: String = DEFAULT_CURRENCY) = Money(0, currency)
 
         fun parse(text: String, currency: String = DEFAULT_CURRENCY): Money? {
-            val match = DECIMAL_INPUT.matchEntire(text.trim()) ?: return null
+            val match = DECIMAL_INPUT.matchEntire(text.trim().toAsciiDigits()) ?: return null
             val whole = match.groupValues[1].toLong()
             val cents = match.groupValues[2].padEnd(2, '0').toLong()
             return Money(whole * 100 + cents, currency)

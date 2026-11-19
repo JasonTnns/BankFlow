@@ -91,6 +91,7 @@ fun ProfileScreen(
         onOpenRecipients = onOpenRecipients,
         onLogout = onLogout,
         appVersion = BuildConfig.VERSION_NAME,
+        ltr = true,
         securitySection = { SecuritySection() },
     )
 }
@@ -193,9 +194,9 @@ private fun ProfileBody(
                         ) { Text(stringResource(R.string.action_edit)) }
                     },
                 )
-                InfoRow(stringResource(R.string.auth_email), profile.user.email, tag = "row_email")
+                InfoRow(stringResource(R.string.auth_email),ltr = true, profile.user.email, tag = "row_email")
                 InfoRow(stringResource(R.string.profile_member_since), profile.memberSince.formatDate(), tag = "row_since")
-                InfoRow(stringResource(R.string.profile_daily_limit), profile.dailyTransferLimit.format(), tag = "row_limit", showDivider = false)
+                InfoRow(stringResource(R.string.profile_daily_limit),ltr = true, profile.dailyTransferLimit.format(), tag = "row_limit", showDivider = false)
             }
         }
         Text(
@@ -297,7 +298,7 @@ private fun ProfileHeader(profile: Profile) {
         )
         Text(
             text = profile.user.email,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.ltr(),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.testTag("profile_email"),
         )
@@ -306,6 +307,7 @@ private fun ProfileHeader(profile: Profile) {
 
 @Composable
 private fun InfoRow(
+    ltr: Boolean = false,
     label: String,
     value: String,
     tag: String,
@@ -324,7 +326,7 @@ private fun InfoRow(
             Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
-                    text = value,
+                    text = value.let { if (ltr) it.ltr() else it },
                     style = MaterialTheme.typography.bodyMedium,
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(start = 16.dp).testTag(tag),

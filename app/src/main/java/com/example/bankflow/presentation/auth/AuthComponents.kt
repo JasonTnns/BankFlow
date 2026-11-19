@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -35,6 +36,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.example.bankflow.R
+import com.example.bankflow.presentation.common.ltr
 
 @Composable
 internal fun AuthTextField(
@@ -49,6 +51,8 @@ internal fun AuthTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
     trailingIcon: (@Composable () -> Unit)? = null,
+    forceLtr: Boolean = false,
+
 ) {
     val helper = errorText ?: supportingText
     OutlinedTextField(
@@ -68,6 +72,7 @@ internal fun AuthTextField(
         keyboardActions = keyboardActions,
         visualTransformation = visualTransformation,
         trailingIcon = trailingIcon,
+        textStyle = if (forceLtr) LocalTextStyle.current.ltr() else LocalTextStyle.current,
     )
 }
 

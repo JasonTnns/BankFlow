@@ -23,6 +23,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bankflow.R
 import com.example.bankflow.domain.model.Beneficiary
 import com.example.bankflow.presentation.auth.ErrorBanner
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.common.userMessage
@@ -159,6 +161,7 @@ private fun AddRecipientDialog(form: AddRecipientForm, onIntent: (BeneficiariesI
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 form.banner?.let { ErrorBanner(it.userMessage(), Modifier.testTag("add_error")) }
                 OutlinedTextField(
+                    textStyle = LocalTextStyle.current.ltr(),
                     value = form.nickname,
                     onValueChange = { onIntent(BeneficiariesIntent.NicknameChanged(it)) },
                     modifier = Modifier.testTag("add_nickname"),

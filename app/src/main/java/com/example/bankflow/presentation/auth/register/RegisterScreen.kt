@@ -96,6 +96,7 @@ fun RegisterContent(
             )
 
             AuthTextField(
+                forceLtr = true,
                 value = state.email,
                 onValueChange = { onIntent(RegisterIntent.EmailChanged(it)) },
                 label = stringResource(R.string.auth_email),

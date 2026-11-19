@@ -3,6 +3,7 @@ package com.example.bankflow.presentation.beneficiaries
 import androidx.lifecycle.viewModelScope
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.toAsciiDigits
 import com.example.bankflow.domain.model.Beneficiary
 import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
 import com.example.bankflow.domain.usecase.DeleteBeneficiaryUseCase
@@ -35,7 +36,7 @@ class BeneficiariesViewModel(
             }
             is BeneficiariesIntent.NumberChanged -> editForm {
                 copy(
-                    accountNumber = intent.text.filter { it.isDigit() }.take(ACCOUNT_NUMBER_LENGTH),
+                    accountNumber = intent.text.toAsciiDigits().filter { it in '0'..'9' }.take(ACCOUNT_NUMBER_LENGTH),
                     error = error.withoutNumberError(),
                 )
             }

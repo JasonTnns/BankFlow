@@ -21,6 +21,10 @@ import com.example.bankflow.testutil.TEST_RECIPIENT
 import com.example.bankflow.testutil.TEST_SAVINGS
 import com.example.bankflow.testutil.TestClock
 import com.example.bankflow.testutil.successResult
+import com.example.bankflow.testutil.testBeneficiary
+import com.example.bankflow.testutil.toArabicIndic
+import com.example.bankflow.testutil.toPersianDigits
+import com.example.bankflow.testutil.withArabicDecimalSeparator
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -610,4 +614,34 @@ class TransferViewModelTest {
         destination = TransferDestination.AccountNumber("200000000001"),
         amount = Money(2_500),
     )
+
+    @Test
+    fun `an account number typed with arabic digits is stored as plain digits`() {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(TransferIntent.AccountNumberChanged("200000000001".toArabicIndic()))
+
+        assertEquals("200000000001", viewModel.state.value.accountNumber)
+    }
+
+    @Test
+    fun `an amount typed with arabic digits and separator is stored as plain text`() {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(TransferIntent.AmountChanged("25.5".toArabicIndic().withArabicDecimalSeparator()))
+
+        assertEquals("25.5", viewModel.state.value.amountText)
+    }
+
+    @Test
+    fun `a transfer typed entirely in arabic digits reaches the review`() {
+        val viewModel = viewModel()
+        viewModel.onIntent(TransferIntent.AccountNumberChanged("200000000001".toPersianDigits))
+        viewModel.onIntent(TransferIntent.AmountChanged("25".toArabicIndic()))
+
+        viewModel.onIntent(TransferIntent.Continue)
+
+        assertEquals(TransferStep.REVIEW, viewModel.state.value.step)
+        assertEquals(listOf("200000000001"), accounts.recipientLookups)
+    }
 }

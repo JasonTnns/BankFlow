@@ -1,5 +1,9 @@
 package com.example.bankflow.domain.model
 
+import com.example.bankflow.testutil.toArabicIndic
+import com.example.bankflow.testutil.toFullWidthDigits
+import com.example.bankflow.testutil.toPersianDigits
+import com.example.bankflow.testutil.withArabicDecimalSeparator
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -67,5 +71,18 @@ class MoneyTest {
     @Test
     fun `currency code must be three letters`() {
         assertThrows(IllegalArgumentException::class.java) { Money(100, "US") }
+    }
+
+    @Test
+    fun `amounts typed with another script's digits parse exactly`() {
+        assertEquals(Money(2_550), Money.parse("25.5".toArabicIndic().withArabicDecimalSeparator()))
+        assertEquals(Money(100_000), Money.parse("1000".toPersianDigits()))
+        assertEquals(Money(5), Money.parse("0.05".toFullWidthDigits()))
+    }
+
+    @Test
+    fun `a thousands separator is still rejected, in any script`() {
+        assertNull(Money.parse("1\u066C000".toArabicIndic()))
+        assertNull(Money.parse("1,000".toArabicIndic()))
     }
 }

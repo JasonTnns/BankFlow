@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import com.example.bankflow.presentation.common.ltr
 
 
 @Composable
@@ -38,5 +39,5 @@ fun AnimatedAmount(text: String, style: TextStyle, modifier: Modifier = Modifier
             }
         },
         label = "amount",
-    ) { value -> Text(text = value, style = style) }
+    ) { value -> Text(text = value, style = style.ltr()) }
 }

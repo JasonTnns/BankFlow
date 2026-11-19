@@ -1,0 +1,322 @@
+<resources>
+    <!-- Actions -->
+    <string name="action_back">رجوع</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_save">حفظ</string>
+    <string name="action_saving">جارٍ الحفظ…</string>
+    <string name="action_done">تم</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_edit">تعديل</string>
+    <string name="action_ok">موافق</string>
+    <string name="action_close">إغلاق</string>
+    <string name="action_add">إضافة</string>
+    <string name="action_manage">إدارة</string>
+    <string name="action_copy">نسخ</string>
+    <string name="action_copied">تم النسخ</string>
+    <string name="action_continue">متابعة</string>
+    <string name="action_clear_all">مسح الكل</string>
+    <string name="action_reset">إعادة تعيين</string>
+    <string name="action_try_again">حاول مرة أخرى</string>
+    <string name="action_retry">إعادة المحاولة</string>
+    <string name="action_log_out">تسجيل الخروج</string>
+    <string name="loading">جارٍ التحميل</string>
+
+    <!-- Dates and ranges -->
+    <string name="date_today">اليوم</string>
+    <string name="date_yesterday">أمس</string>
+    <string name="date_range_from">من %1$s</string>
+    <string name="date_range_until">حتى %1$s</string>
+    <string name="date_range_between">%1$s – %2$s</string>
+    <string name="amount_range_min">%1$s على الأقل</string>
+    <string name="amount_range_max">حتى %1$s</string>
+    <string name="amount_range_between">%1$s – %2$s</string>
+
+    <!-- Navigation -->
+    <string name="tab_home">الرئيسية</string>
+    <string name="tab_transfer">تحويل</string>
+    <string name="tab_insights">التحليلات</string>
+    <string name="tab_profile">الملف الشخصي</string>
+
+    <!-- Errors -->
+    <string name="error_no_connection">لا يوجد اتصال بالإنترنت. تحقق من الشبكة وحاول مرة أخرى.</string>
+    <string name="error_timeout">استغرق الطلب وقتًا طويلًا. يُرجى المحاولة مرة أخرى.</string>
+    <string name="error_server">حدث خطأ من جانبنا. يُرجى المحاولة مرة أخرى.</string>
+    <string name="error_rate_limited">محاولات كثيرة جدًا. يُرجى الانتظار قليلًا ثم المحاولة مرة أخرى.</string>
+    <string name="error_session_expired">انتهت جلستك. يُرجى تسجيل الدخول مرة أخرى.</string>
+    <string name="error_invalid_credentials">البريد الإلكتروني أو كلمة المرور غير صحيحة.</string>
+    <string name="error_email_taken">يوجد حساب مسجّل بهذا البريد الإلكتروني بالفعل.</string>
+    <string name="error_validation">يُرجى مراجعة الحقول المميّزة.</string>
+    <string name="error_not_found">لم نتمكن من العثور على ذلك.</string>
+    <string name="error_insufficient_funds">رصيدك غير كافٍ لإتمام هذا التحويل.</string>
+    <string name="error_limit_exceeded_with_remaining">هذا يتجاوز حدّك اليومي. يمكنك إرسال ما يصل إلى %1$s اليوم.</string>
+    <string name="error_limit_exceeded">هذا التحويل يتجاوز حدّك اليومي.</string>
+    <string name="error_same_account">اختر حسابين مختلفين.</string>
+    <string name="error_account_inactive">لا يمكن استخدام أحد الحسابين حاليًا.</string>
+    <string name="error_currency_mismatch">يجب أن يكون للحسابين العملة نفسها.</string>
+    <string name="error_idempotency_conflict">سبق إرسال هذا التحويل بتفاصيل مختلفة. ابدأ تحويلًا جديدًا.</string>
+    <string name="error_beneficiary_exists">هذا المستلم محفوظ بالفعل.</string>
+    <string name="error_unknown">حدث خطأ غير متوقع. يُرجى المحاولة مرة أخرى.</string>
+
+    <!-- Field problems -->
+    <string name="issue_email_required">البريد الإلكتروني مطلوب</string>
+    <string name="issue_email_invalid">أدخل عنوان بريد إلكتروني صالحًا</string>
+    <string name="issue_password_required">كلمة المرور مطلوبة</string>
+    <string name="issue_password_too_short">يجب ألا تقل كلمة المرور عن %1$d أحرف</string>
+    <string name="issue_password_needs_letter_number">يجب أن تحتوي كلمة المرور على حرف ورقم</string>
+    <string name="issue_password_too_long">كلمة المرور طويلة جدًا</string>
+    <string name="issue_name_required">الاسم الكامل مطلوب</string>
+    <string name="issue_name_too_long">الاسم الكامل طويل جدًا (الحد الأقصى %1$d حرفًا)</string>
+    <string name="issue_amount_required">أدخل مبلغًا</string>
+    <string name="issue_amount_invalid">أدخل مبلغًا مثل 25 أو 25.50</string>
+    <string name="issue_amount_not_positive">أدخل مبلغًا أكبر من صفر</string>
+    <string name="issue_amount_too_large">المبلغ أعلى من الحد الأقصى للتحويل الواحد</string>
+    <string name="issue_amount_max_below_min">يجب ألا يقل الحد الأقصى عن الحد الأدنى</string>
+    <string name="issue_insufficient_funds">رصيدك غير كافٍ. المتاح: %1$s</string>
+    <string name="issue_account_number_invalid">يجب أن يتكون رقم الحساب من 12 رقمًا</string>
+    <string name="issue_destination_required">اختر الحساب المستلم</string>
+    <string name="issue_destination_not_found">لا يوجد حساب بهذا الرقم</string>
+    <string name="issue_destination_is_source">اختر حسابًا مختلفًا للإرسال إليه</string>
+    <string name="issue_description_too_long">الوصف طويل جدًا (الحد الأقصى %1$d حرفًا)</string>
+    <string name="issue_nickname_required">أعطِ هذا المستلم اسمًا</string>
+    <string name="issue_nickname_too_long">الاسم طويل جدًا (الحد الأقصى %1$d حرفًا)</string>
+    <string name="issue_invalid">هذه القيمة غير صالحة</string>
+
+    <!-- Transfer outcome messages -->
+    <string name="transfer_failure_validation">لم تُقبل بعض تفاصيل هذا التحويل. يُرجى مراجعتها والمحاولة مرة أخرى.</string>
+    <string name="unknown_outcome_lost_connection">فقدنا الاتصال أثناء إرسال تحويلك.</string>
+    <string name="unknown_outcome_slow">يستغرق تحويلك وقتًا أطول من المتوقع.</string>
+    <string name="unknown_outcome_generic">حدث خطأ أثناء إرسال تحويلك.</string>
+    <string name="unknown_outcome_format">%1$s لم نتمكن من التأكد من اكتمال التحويل. يمكنك المحاولة مرة أخرى بأمان، ولن يُرسل مرتين.</string>
+
+    <!-- Saved (cached) data -->
+    <string name="saved_data_just_now">عرض بيانات محفوظة من الآن</string>
+    <string name="saved_data_date">عرض بيانات محفوظة من %1$s</string>
+    <plurals name="saved_data_minutes">
+        <item quantity="zero">عرض بيانات محفوظة منذ %1$d دقيقة</item>
+        <item quantity="one">عرض بيانات محفوظة منذ دقيقة</item>
+        <item quantity="two">عرض بيانات محفوظة منذ دقيقتين</item>
+        <item quantity="few">عرض بيانات محفوظة منذ %1$d دقائق</item>
+        <item quantity="many">عرض بيانات محفوظة منذ %1$d دقيقة</item>
+        <item quantity="other">عرض بيانات محفوظة منذ %1$d دقيقة</item>
+    </plurals>
+    <plurals name="saved_data_hours">
+        <item quantity="zero">عرض بيانات محفوظة منذ %1$d ساعة</item>
+        <item quantity="one">عرض بيانات محفوظة منذ ساعة</item>
+        <item quantity="two">عرض بيانات محفوظة منذ ساعتين</item>
+        <item quantity="few">عرض بيانات محفوظة منذ %1$d ساعات</item>
+        <item quantity="many">عرض بيانات محفوظة منذ %1$d ساعة</item>
+        <item quantity="other">عرض بيانات محفوظة منذ %1$d ساعة</item>
+    </plurals>
+
+    <!-- App lock -->
+    <string name="lock_title">التطبيق مقفل</string>
+    <string name="lock_message">تحقق من هويتك للمتابعة.</string>
+    <string name="lock_action_unlock">فتح القفل</string>
+    <string name="lock_action_logout">تسجيل الخروج</string>
+    <string name="lock_failure_locked_out">محاولات كثيرة جدًا. حاول لاحقًا، أو سجّل الخروج ثم سجّل الدخول بكلمة المرور.</string>
+    <string name="lock_failure_unavailable">فتح القفل غير متاح حاليًا. سجّل الخروج ثم سجّل الدخول بكلمة المرور.</string>
+    <string name="lock_failure_error">تعذّر التحقق من هويتك. يُرجى المحاولة مرة أخرى.</string>
+    <string name="lock_prompt_title">فتح BankFlow</string>
+    <string name="lock_prompt_subtitle">استخدم بصمتك أو وجهك أو رمز PIN للجهاز</string>
+
+    <!-- Security settings -->
+    <string name="security_title">الأمان</string>
+    <string name="security_unlock_title">فتح القفل بالقياسات الحيوية أو رمز PIN للجهاز</string>
+    <string name="security_unlock_available">اطلب بصمتك أو وجهك أو رمز PIN للجهاز عند فتح التطبيق أو العودة إليه، وأبقِ تسجيل دخولك المحفوظ مقفلًا حتى تفعل ذلك.</string>
+    <string name="security_unlock_none_enrolled">أعدّ قفل الشاشة أو البصمة في إعدادات هاتفك لاستخدام هذه الميزة.</string>
+    <string name="security_unlock_no_hardware">لا يستطيع هذا الجهاز التحقق من هويتك، لذا فإن فتح القفل بالتطبيق غير متاح.</string>
+    <string name="security_unlock_unavailable">فتح القفل بالتطبيق غير متاح حاليًا.</string>
+    <string name="security_prompt_enable">تفعيل قفل التطبيق</string>
+    <string name="security_prompt_disable">إيقاف قفل التطبيق</string>
+
+    <!-- Sign in and registration -->
+    <string name="auth_email">البريد الإلكتروني</string>
+    <string name="auth_password">كلمة المرور</string>
+    <string name="auth_show_password">إظهار كلمة المرور</string>
+    <string name="auth_hide_password">إخفاء كلمة المرور</string>
+    <string name="login_subtitle">سجّل الدخول إلى حساباتك</string>
+    <string name="login_action_sign_in">تسجيل الدخول</string>
+    <string name="login_action_create_account">جديد هنا؟ أنشئ حسابًا</string>
+    <string name="register_title">أنشئ حسابك</string>
+    <string name="register_subtitle">يُفتح حسابك الجاري الأول برصيد تجريبي.</string>
+    <string name="register_full_name">الاسم الكامل</string>
+    <string name="register_password_hint">8 أحرف على الأقل، مع حرف ورقم</string>
+    <string name="register_action_create">إنشاء حساب</string>
+    <string name="register_action_sign_in">لديك حساب بالفعل؟ سجّل الدخول</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting">مرحبًا، %1$s</string>
+    <string name="dashboard_greeting_no_name">مرحبًا</string>
+    <string name="dashboard_total_balance">إجمالي الرصيد</string>
+    <string name="dashboard_accounts">الحسابات</string>
+    <string name="dashboard_accounts_empty_title">لا توجد حسابات بعد</string>
+    <string name="dashboard_accounts_empty_message">ستظهر حساباتك هنا.</string>
+    <string name="dashboard_recent_activity">النشاط الأخير</string>
+    <string name="dashboard_activity_empty_title">لا توجد معاملات بعد</string>
+    <string name="dashboard_activity_empty_message">سيظهر نشاطك هنا.</string>
+
+    <!-- Shared rows -->
+    <string name="account_card_spoken">%1$s، حساب %2$s ينتهي بـ %3$s، الرصيد %4$s</string>
+    <string name="transaction_spoken_in">استلام %1$s من %2$s، %3$s، %4$s</string>
+    <string name="transaction_spoken_out">إرسال %1$s إلى %2$s، %3$s، %4$s</string>
+
+    <!-- Categories, types and statuses -->
+    <string name="category_food">الطعام</string>
+    <string name="category_transport">المواصلات</string>
+    <string name="category_shopping">التسوق</string>
+    <string name="category_bills">الفواتير</string>
+    <string name="category_entertainment">الترفيه</string>
+    <string name="category_health">الصحة</string>
+    <string name="category_income">الدخل</string>
+    <string name="category_transfer">تحويل</string>
+    <string name="category_other">أخرى</string>
+    <string name="account_type_checking">حساب جارٍ</string>
+    <string name="account_type_savings">حساب توفير</string>
+    <string name="direction_in">أموال واردة</string>
+    <string name="direction_out">أموال صادرة</string>
+    <string name="status_pending">قيد الانتظار</string>
+    <string name="status_completed">مكتملة</string>
+    <string name="status_failed">فشلت</string>
+    <string name="status_reversed">مُعادة</string>
+    <string name="kind_transfer">تحويل</string>
+    <string name="kind_deposit">إيداع</string>
+    <string name="theme_system">افتراضي النظام</string>
+    <string name="theme_light">فاتح</string>
+    <string name="theme_dark">داكن</string>
+    <string name="theme_system_description">يطابق إعداد هاتفك</string>
+    <string name="theme_light_description">فاتح دائمًا</string>
+    <string name="theme_dark_description">داكن دائمًا</string>
+
+    <!-- Account history and filters -->
+    <string name="account_title_fallback">الحساب</string>
+    <string name="history_transactions">المعاملات</string>
+    <string name="history_empty_filtered_title">لا توجد معاملات مطابقة</string>
+    <string name="history_empty_filtered_message">جرّب مرشّحات أو بحثًا مختلفًا.</string>
+    <string name="history_clear_filters">مسح المرشّحات</string>
+    <string name="history_empty_title">لا توجد معاملات بعد</string>
+    <string name="history_empty_message">سيظهر النشاط على هذا الحساب هنا.</string>
+    <string name="history_loading_more">جارٍ تحميل المزيد من المعاملات</string>
+    <string name="history_end">لقد اطّلعت على كل شيء</string>
+    <string name="history_search_placeholder">ابحث في المعاملات</string>
+    <string name="history_clear_search">مسح البحث</string>
+    <string name="history_filters">المرشّحات</string>
+    <string name="history_filters_active">المرشّحات، %1$d نشطة</string>
+    <string name="history_remove_filter">إزالة المرشّح: %1$s</string>
+    <string name="filter_title">المرشّحات</string>
+    <string name="filter_type">النوع</string>
+    <string name="filter_any_type">أي نوع</string>
+    <string name="filter_category">الفئة</string>
+    <string name="filter_all_categories">كل الفئات</string>
+    <string name="filter_date_range">النطاق الزمني</string>
+    <string name="filter_any_date">أي تاريخ</string>
+    <string name="filter_clear_dates">مسح النطاق الزمني</string>
+    <string name="filter_amount">المبلغ</string>
+    <string name="filter_min">الحد الأدنى</string>
+    <string name="filter_max">الحد الأقصى</string>
+    <string name="filter_apply">عرض النتائج</string>
+
+    <!-- Transaction details -->
+    <string name="details_title">المعاملة</string>
+    <string name="details_loading">جارٍ تحميل المعاملة</string>
+    <string name="details_account">الحساب</string>
+    <string name="details_your_account">%1$s (حسابك)</string>
+    <string name="details_date">التاريخ</string>
+    <string name="details_category">الفئة</string>
+    <string name="details_description">الوصف</string>
+    <string name="details_type">النوع</string>
+    <string name="details_balance_after">الرصيد بعد المعاملة</string>
+    <string name="details_reference">المرجع</string>
+
+    <!-- Transfer flow -->
+    <string name="transfer_title">إرسال أموال</string>
+    <string name="transfer_review_title">مراجعة التحويل</string>
+    <string name="transfer_loading_accounts">جارٍ تحميل الحسابات</string>
+    <string name="transfer_no_accounts_title">لا توجد حسابات بعد</string>
+    <string name="transfer_no_accounts_message">تحتاج إلى حساب قبل أن تتمكن من إرسال الأموال.</string>
+    <string name="transfer_from">من</string>
+    <string name="transfer_to">إلى</string>
+    <string name="transfer_mode_other">شخص آخر</string>
+    <string name="transfer_mode_own">حساباتي</string>
+    <string name="transfer_account_number">رقم الحساب</string>
+    <string name="transfer_account_number_hint">12 رقمًا. سترى اسم المالك قبل الإرسال.</string>
+    <string name="transfer_no_own_accounts">تحتاج إلى حساب نشط آخر لتحويل الأموال بين حساباتك.</string>
+    <string name="transfer_amount">المبلغ</string>
+    <string name="transfer_available">المتاح: %1$s</string>
+    <string name="transfer_category">الفئة</string>
+    <string name="transfer_note">ملاحظة (اختياري)</string>
+    <string name="review_sending">ستُرسل</string>
+    <string name="review_to">إلى %1$s</string>
+    <string name="review_note">ملاحظة</string>
+    <string name="review_fee">الرسوم</string>
+    <string name="review_fee_none">لا يوجد</string>
+    <string name="review_confirm">تأكيد وإرسال</string>
+    <string name="review_edit">تعديل التحويل</string>
+    <string name="success_title">تم إرسال التحويل</string>
+    <string name="success_new_balance">الرصيد الجديد</string>
+    <string name="success_another">إجراء تحويل آخر</string>
+    <string name="failure_title">لم يُرسل التحويل</string>
+    <string name="failure_no_money">لم يتم نقل أي أموال.</string>
+
+    <!-- Saved recipients -->
+    <string name="recipients_title">المستلمون المحفوظون</string>
+    <string name="recipients_hint_empty">سيظهر هنا الأشخاص الذين تحفظهم لإجراء تحويلات بنقرة واحدة.</string>
+    <string name="recipients_saved_confirmation">تم حفظ %1$s في مستلميك</string>
+    <string name="recipients_save_prompt">حفظ %1$s كمستلم</string>
+    <string name="recipients_add">إضافة مستلم</string>
+    <string name="recipients_loading">جارٍ تحميل المستلمين</string>
+    <string name="recipients_empty_title">لا يوجد مستلمون محفوظون</string>
+    <string name="recipients_empty_message">احفظ الأشخاص الذين تدفع لهم كثيرًا، وأرسل إليهم الأموال بنقرة واحدة.</string>
+    <string name="recipients_row_unavailable">%1$s · %2$s · غير متاح</string>
+    <string name="recipients_delete_description">حذف %1$s</string>
+    <string name="recipients_name_label">الاسم، مثل: أمي</string>
+    <string name="recipients_number_hint">12 رقمًا</string>
+    <string name="recipients_delete_title">حذف المستلم؟</string>
+    <string name="recipients_delete_message">سيُزال %1$s (%2$s) من مستلميك المحفوظين. يمكنك إضافته مرة أخرى لاحقًا.</string>
+
+    <!-- Insights -->
+    <string name="insights_title">التحليلات</string>
+    <string name="insights_previous_month">الشهر السابق</string>
+    <string name="insights_next_month">الشهر التالي</string>
+    <string name="insights_spent">المصروف</string>
+    <string name="insights_income">الدخل</string>
+    <string name="insights_net">الصافي</string>
+    <string name="insights_total_spoken">%1$s، %2$s</string>
+    <string name="insights_categories_title">الإنفاق حسب الفئة</string>
+    <string name="insights_no_spending">لم تنفق أي شيء هذا الشهر.</string>
+    <string name="insights_empty_title">لا يوجد نشاط في %1$s</string>
+    <string name="insights_empty_message">ستظهر هنا الأموال التي ترسلها وتستلمها هذا الشهر.</string>
+    <string name="insights_loading">جارٍ تحميل التحليلات</string>
+    <string name="insights_share">%1$s من الإنفاق</string>
+    <string name="insights_category_spoken">%1$s، %2$s، %3$s من الإنفاق، %4$s</string>
+    <string name="insights_comparison_more">أكثر بنسبة %1$d%% من %2$s</string>
+    <string name="insights_comparison_less">أقل بنسبة %1$d%% من %2$s</string>
+    <string name="insights_comparison_same">مثل %1$s</string>
+    <string name="share_percent">%1$d%%</string>
+    <string name="share_less_than_one" formatted="false">أقل من 1%</string>
+    <plurals name="insights_transactions">
+        <item quantity="zero">%1$d معاملة</item>
+        <item quantity="one">معاملة واحدة</item>
+        <item quantity="two">معاملتان</item>
+        <item quantity="few">%1$d معاملات</item>
+        <item quantity="many">%1$d معاملة</item>
+        <item quantity="other">%1$d معاملة</item>
+    </plurals>
+
+    <!-- Profile -->
+    <string name="profile_title">الملف الشخصي</string>
+    <string name="profile_loading">جارٍ تحميل الملف الشخصي</string>
+    <string name="profile_section_account">الحساب</string>
+    <string name="profile_name">الاسم</string>
+    <string name="profile_member_since">عضو منذ</string>
+    <string name="profile_daily_limit">حد التحويل اليومي</string>
+    <string name="profile_read_only_note">لا يمكن تغيير بريدك الإلكتروني وحد التحويل من هنا.</string>
+    <string name="profile_section_appearance">المظهر</string>
+    <string name="profile_section_payments">المدفوعات</string>
+    <string name="profile_recipients_support">الأشخاص الذين ترسل لهم الأموال</string>
+    <string name="profile_section_about">حول</string>
+    <string name="profile_version">الإصدار</string>
+    <string name="profile_demo_note">BankFlow تطبيق تجريبي. لا تُستخدم فيه أموال حقيقية.</string>
+    <string name="profile_logout_title">تسجيل الخروج؟</string>
+    <string name="profile_logout_message">ستحتاج إلى تسجيل الدخول مرة أخرى لعرض حساباتك.</string>
+    <string name="profile_name_dialog_title">تعديل الاسم</string>
+</resources>

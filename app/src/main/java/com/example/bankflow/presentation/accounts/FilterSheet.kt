@@ -19,6 +19,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -49,6 +50,7 @@ import com.example.bankflow.presentation.accounts.filter.FilterDraft
 import com.example.bankflow.presentation.accounts.filter.localDateToPickerMillis
 import com.example.bankflow.presentation.accounts.filter.pickerMillisToLocalDate
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.toText
 import com.example.bankflow.presentation.common.uiString
@@ -187,6 +189,7 @@ fun FilterSheetContent(
         SheetSection(stringResource(R.string.filter_amount)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
+                    textStyle = LocalTextStyle.current.ltr(),
                     value = draft.minAmountText,
                     onValueChange = { onDraftChange(draft.copy(minAmountText = it)) },
                     modifier = Modifier.weight(1f).testTag("filter_min"),

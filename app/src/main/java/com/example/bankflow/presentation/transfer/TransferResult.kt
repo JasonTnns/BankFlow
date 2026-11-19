@@ -41,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import com.example.bankflow.R
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.rememberReduceMotion
 
@@ -84,7 +85,7 @@ fun TransferSuccessContent(
             Text(stringResource(R.string.success_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             Text(
                 text = result.transfer.amount.format(),
-                style = MaterialTheme.typography.displaySmall,
+                style = MaterialTheme.typography.displaySmall.ltr(),
                 modifier = Modifier.testTag("success_amount"),
             )
             review?.let {
@@ -174,7 +175,7 @@ private fun ResultRow(
             Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = value,
-                style = if (monospace) MaterialTheme.typography.bodySmall else MaterialTheme.typography.titleMedium,
+                style = (if (monospace) MaterialTheme.typography.bodySmall else MaterialTheme.typography.titleMedium).ltr(),
                 fontFamily = if (monospace) FontFamily.Monospace else null,
                 textAlign = TextAlign.End,
                 modifier = Modifier.padding(start = 16.dp).testTag(tag),

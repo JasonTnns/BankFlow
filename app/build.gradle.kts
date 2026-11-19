@@ -64,6 +64,10 @@ android {
             excludes += "/META-INF/LICENSE*"
         }
     }
+
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 kotlin {

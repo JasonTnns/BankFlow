@@ -82,6 +82,7 @@ fun LoginContent(
             state.banner?.let { ErrorBanner(it.userMessage(), Modifier.testTag("auth_error")) }
 
             AuthTextField(
+                forceLtr = true,
                 value = state.email,
                 onValueChange = { onIntent(LoginIntent.EmailChanged(it)) },
                 label = stringResource(R.string.auth_email),

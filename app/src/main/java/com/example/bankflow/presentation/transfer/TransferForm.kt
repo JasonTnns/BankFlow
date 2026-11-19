@@ -21,6 +21,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -50,6 +51,7 @@ import com.example.bankflow.presentation.auth.LoadingButton
 import com.example.bankflow.presentation.common.currencySymbol
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.common.userMessage
@@ -211,6 +213,7 @@ private fun FormBody(
         }
 
         OutlinedTextField(
+            textStyle = LocalTextStyle.current.ltr(),
             value = state.note,
             onValueChange = { onIntent(TransferIntent.NoteChanged(it)) },
             modifier = Modifier.fillMaxWidth().testTag("transfer_note"),

@@ -45,6 +45,7 @@ import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.formatSigned
 import com.example.bankflow.presentation.common.label
 import com.example.bankflow.presentation.common.labelRes
+import com.example.bankflow.presentation.common.ltr
 import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.EmptyState
@@ -203,8 +204,8 @@ private fun TotalCard(label: String, value: String, tag: String, modifier: Modif
     val spoken = uiString(R.string.insights_total_spoken, label, value)
     Card(modifier = modifier.semantics(mergeDescendants = true) { contentDescription = spoken }) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.titleLarge, modifier = Modifier.testTag(tag))
+            Text(label, style = MaterialTheme.typography.titleLarge.ltr(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, style = MaterialTheme.typography.titleLarge.ltr(), modifier = Modifier.testTag(tag))
         }
     }
 }
@@ -244,7 +245,7 @@ private fun CategoryRow(spend: CategorySpend, percent: Int, barFraction: Float) 
                 )
                 Text(name, style = MaterialTheme.typography.bodyLarge)
             }
-            Text(amount, style = MaterialTheme.typography.titleSmall)
+            Text(amount, style = MaterialTheme.typography.titleSmall.ltr())
         }
         LinearProgressIndicator(progress = { barFraction }, modifier = Modifier.fillMaxWidth())
         Text(
