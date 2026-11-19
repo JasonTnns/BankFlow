@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -65,15 +64,17 @@ import com.example.bankflow.domain.model.Transaction
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.label
 import com.example.bankflow.presentation.common.signedAmount
-import com.example.bankflow.presentation.common.spokenDescription
-import com.example.bankflow.presentation.common.subtitle
 import com.example.bankflow.presentation.common.userMessage
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import com.example.bankflow.R
+import com.example.bankflow.presentation.common.UiText
+import com.example.bankflow.presentation.common.labelRes
 import com.example.bankflow.presentation.common.lastUpdatedText
 import com.example.bankflow.presentation.common.resolve
+import com.example.bankflow.presentation.common.spokenText
+import com.example.bankflow.presentation.common.subtitleText
 import java.time.Instant
 
 internal fun Category.icon(): ImageVector = when (this) {
@@ -106,7 +107,7 @@ fun TransactionRow(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
 ) {
-    val spoken = transaction.spokenDescription()
+    val spoken = transaction.spokenText().resolve()
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -139,7 +140,7 @@ fun TransactionRow(
                 overflow = TextOverflow.Ellipsis,
             )
             Text(
-                text = transaction.subtitle(),
+                text = transaction.subtitleText().resolve(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
@@ -164,8 +165,10 @@ fun AccountCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val spoken = "${account.name}, ${account.type.label()} account ending ${account.accountNumber.takeLast(4)}, " +
-            "balance ${account.balance.format()}"
+    val spoken = UiText.Res(
+        R.string.account_card_spoken,
+        listOf(account.name, UiText.Res(account.type.labelRes()), account.accountNumber.takeLast(4), account.balance),
+    ).resolve()
     Card(
         onClick = onClick,
         modifier = modifier

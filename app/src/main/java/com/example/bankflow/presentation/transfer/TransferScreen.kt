@@ -16,9 +16,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -58,14 +60,14 @@ fun TransferContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (state.step == TransferStep.REVIEW) "Review transfer" else "Send money") },
+                title = { Text(stringResource(if (state.step == TransferStep.REVIEW) R.string.transfer_review_title else R.string.transfer_title)) },
                 navigationIcon = {
                     if (state.step == TransferStep.REVIEW) {
                         IconButton(
                             onClick = { onIntent(TransferIntent.BackToForm) },
                             enabled = !state.isSubmitting,
                             modifier = Modifier.testTag("review_top_back"),
-                        ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
+                        ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back)) }
                     }
                 },
             )

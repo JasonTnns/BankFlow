@@ -2,6 +2,7 @@ package com.example.bankflow.domain.usecase
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Profile
 import com.example.bankflow.domain.model.ThemePreference
 import com.example.bankflow.domain.repository.ProfileRepository
@@ -16,19 +17,17 @@ class UpdateProfileUseCase(
         fullName: String? = null,
         themePreference: ThemePreference? = null,
     ): AppResult<Profile> {
-        if (fullName == null && themePreference == null) {
-            return AppResult.Failure(AppError.Validation(message = "Nothing to update"))
-        }
+        if (fullName == null && themePreference == null) return AppResult.Failure(AppError.Validation())
 
         val cleanName = fullName?.trim()
         if (cleanName != null) {
-            val problem = when {
-                cleanName.isEmpty() -> "Full name is required"
-                cleanName.length > MAX_NAME_LENGTH -> "Full name is too long (max $MAX_NAME_LENGTH characters)"
+            val issue = when {
+                cleanName.isEmpty() -> FieldIssue.NameRequired
+                cleanName.length > MAX_NAME_LENGTH -> FieldIssue.NameTooLong(MAX_NAME_LENGTH)
                 else -> null
             }
-            if (problem != null) {
-                return AppResult.Failure(AppError.Validation(fieldErrors = mapOf("fullName" to listOf(problem))))
+            if (issue != null) {
+                return AppResult.Failure(AppError.Validation(issues = mapOf("fullName" to listOf(issue))))
             }
         }
 

@@ -1,5 +1,13 @@
 package com.example.bankflow.domain.common
 
+
+data class Validation(
+    val message: String? = null,
+    val fieldErrors: Map<String, List<String>> = emptyMap(),
+    val issues: Map<String, List<FieldIssue>> = emptyMap(),
+) : AppError {
+    val fields: Set<String> get() = fieldErrors.keys + issues.keys
+}
 sealed interface AppResult<out T> {
     data class Success<out T>(val value: T) : AppResult<T>
     data class Failure(val error: AppError) : AppResult<Nothing>

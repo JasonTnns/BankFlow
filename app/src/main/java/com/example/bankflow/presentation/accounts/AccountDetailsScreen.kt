@@ -35,11 +35,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Account
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.model.Transaction
@@ -47,6 +49,7 @@ import com.example.bankflow.presentation.accounts.filter.activeChips
 import com.example.bankflow.presentation.accounts.filter.without
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.AnimatedAmount
 import com.example.bankflow.presentation.components.EmptyState
 import com.example.bankflow.presentation.components.ErrorState
@@ -70,6 +73,7 @@ fun AccountDetailsScreen(
     viewModel: AccountDetailsViewModel = koinViewModel(parameters = { parametersOf(accountId) }),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val loadingMore = stringResource(R.string.history_loading_more)
     AccountDetailsContent(
         state = state,
         onIntent = viewModel::onIntent,
@@ -105,10 +109,10 @@ fun AccountDetailsContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(state.account?.name ?: "Account") },
+                title = { Text(state.account?.name ?: stringResource(R.string.account_title_fallback)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -137,7 +141,7 @@ fun AccountDetailsContent(
                     contentPadding = PaddingValues(bottom = 24.dp),
                 ) {
                     item(key = "header") { AccountHeader(state.account) }
-                    item(key = "title") { SectionTitle("Transactions") }
+                    item(key = "title") { SectionTitle(stringResource(R.string.history_transactions)) }
                     state.savedAt?.let { savedAt -> item(key = "saved_notice") { SavedDataNotice(savedAt) } }
 
                     val loadError = state.loadError
@@ -150,14 +154,13 @@ fun AccountDetailsContent(
                         state.isEmpty -> item(key = "empty") {
                             if (state.filter.isActive) {
                                 EmptyState(
-                                    title = "No matching transactions",
-                                    message = "Try different filters or a different search.",
-                                    actionLabel = "Clear filters",
+                                    title = stringResource(R.string.history_empty_filtered_title),
+                                    message = stringResource(R.string.history_empty_filtered_message),
+                                    actionLabel = stringResource(R.string.history_clear_filters),
                                     onAction = { onIntent(AccountDetailsIntent.ClearFilter) },
                                 )
                             } else {
-                                EmptyState("No transactions yet", "Activity on this account will show up here.")
-                            }
+                                EmptyState(stringResource(R.string.history_empty_title), stringResource(R.string.history_empty_message))                            }
                         }
 
                         else -> {
@@ -185,7 +188,7 @@ fun AccountDetailsContent(
                                         CircularProgressIndicator(
                                             modifier = Modifier
                                                 .size(24.dp)
-                                                .semantics { contentDescription = "Loading more transactions" },
+                                                .semantics { contentDescription = loadingMore },
                                             strokeWidth = 2.dp,
                                         )
                                     }
@@ -195,7 +198,7 @@ fun AccountDetailsContent(
                                 }
                                 state.endReached -> item(key = "end") {
                                     Text(
-                                        text = "You're all caught up",
+                                        text = stringResource(R.string.history_end),
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         textAlign = TextAlign.Center,
@@ -233,7 +236,7 @@ private fun AccountHeader(account: Account?) {
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         Text(
-            text = "${account.type.label()} \u00B7 ${account.maskedNumber}",
+            text = uiString(R.string.pair_dot, account.type.label(), account.maskedNumber),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

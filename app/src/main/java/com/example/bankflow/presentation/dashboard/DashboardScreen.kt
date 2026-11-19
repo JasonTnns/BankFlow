@@ -22,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.components.AccountCard
@@ -36,6 +38,7 @@ import com.example.bankflow.presentation.components.SkeletonTransactionRow
 import com.example.bankflow.presentation.components.TransactionRow
 import org.koin.androidx.compose.koinViewModel
 import com.example.bankflow.domain.model.Transaction
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.AnimatedAmount
 import com.example.bankflow.presentation.components.SavedDataNotice
 
@@ -70,8 +73,8 @@ fun DashboardContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (firstName.isEmpty()) "Hello" else "Hi, $firstName") },
-            )
+                title = { Text(if (firstName.isEmpty()) stringResource(R.string.dashboard_greeting_no_name) else uiString(R.string.dashboard_greeting, firstName)) },
+                )
         },
     ) { padding ->
         PullToRefreshBox(
@@ -103,18 +106,18 @@ fun DashboardContent(
                         item { BalanceHeader(dashboard.totals) }
                     }
 
-                    item { SectionTitle("Accounts") }
+                    item { SectionTitle(stringResource(R.string.dashboard_accounts)) }
                     if (dashboard.accounts.isEmpty()) {
-                        item { EmptyState("No accounts yet", "Your accounts will show up here.") }
+                        item { EmptyState(stringResource(R.string.dashboard_accounts_empty_title), stringResource(R.string.dashboard_accounts_empty_message)) }
                     } else {
                         items(dashboard.accounts, key = { it.id }, contentType = { "account" }) { account ->
                             AccountCard(account = account, onClick = { onAccountClick(account.id) })
                         }
                     }
 
-                    item { SectionTitle("Recent activity") }
+                    item { SectionTitle(stringResource(R.string.dashboard_recent_activity)) }
                     if (dashboard.recentTransactions.isEmpty()) {
-                        item { EmptyState("No transactions yet", "Your activity will show up here.") }
+                        item { EmptyState(stringResource(R.string.dashboard_activity_empty_title), stringResource(R.string.dashboard_activity_empty_message)) }
                     } else {
                         items(dashboard.recentTransactions, key = { it.key }, contentType = { "transaction" }) { transaction ->
                             TransactionRow(
@@ -134,7 +137,7 @@ fun DashboardContent(
 private fun BalanceHeader(totals: List<Money>) {
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)) {
         Text(
-            text = "Total balance",
+            text = stringResource(R.string.dashboard_total_balance),
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )

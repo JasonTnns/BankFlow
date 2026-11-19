@@ -6,6 +6,7 @@ import com.example.bankflow.presentation.common.toBanner
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
 import com.example.bankflow.presentation.common.UiText
+import com.example.bankflow.presentation.common.fieldText
 import com.example.bankflow.presentation.common.userText
 
 data class RegisterState(
@@ -16,13 +17,12 @@ data class RegisterState(
     val isLoading: Boolean = false,
     val error: AppError? = null,
 ) : UiState {
-    val fullNameError: String? get() = error.fieldError("fullName")
+    val fullNameError: UiText? get() = error.fieldText("fullName")
 
     val emailError: UiText?
-        get() = error.fieldError("email")?.let { UiText.Plain(it) }
-            ?: if (error == AppError.EmailTaken) AppError.EmailTaken.userText() else null
+        get() = error.fieldText("email") ?: if (error == AppError.EmailTaken) AppError.EmailTaken.userText() else null
 
-    val passwordError: String? get() = error.fieldError("password")
+    val passwordError: UiText? get() = error.fieldText("password")
     val banner: AppError? get() = error.toBanner()
 }
 

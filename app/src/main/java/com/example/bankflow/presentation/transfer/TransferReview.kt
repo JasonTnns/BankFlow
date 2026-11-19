@@ -17,14 +17,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.TransferDestination
 import com.example.bankflow.presentation.auth.ErrorBanner
 import com.example.bankflow.presentation.auth.LoadingButton
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.uiString
 
 @Composable
 fun TransferReviewContent(
@@ -43,14 +46,14 @@ fun TransferReviewContent(
         submitError?.let { ErrorBanner(it.unknownOutcomeMessage(), Modifier.testTag("review_error")) }
 
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("You're sending", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.review_sending), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(
                 text = request.amount.format(),
                 style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.testTag("review_amount"),
             )
             Text(
-                text = "to ${review.recipientName}",
+                text = uiString(R.string.review_to, review.recipientName),
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.testTag("review_recipient"),
@@ -59,24 +62,20 @@ fun TransferReviewContent(
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column {
-                ReviewRow("From", "${review.source.name} \u00B7 ${review.source.maskedNumber}")
+                ReviewRow(stringResource(R.string.transfer_from), uiString(R.string.pair_dot, review.source.name, review.source.maskedNumber))
+                val recipientLine = uiString(R.string.pair_dot, review.recipientName, review.recipientDetail)
                 ReviewRow(
-                    label = "To",
-                    value = buildString {
-                        append(review.recipientName)
-                        append(" \u00B7 ")
-                        append(review.recipientDetail)
-                        if (review.isOwnAccount) append(" (your account)")
-                    },
+                    label = stringResource(R.string.transfer_to),
+                    value = if (review.isOwnAccount) uiString(R.string.details_your_account, recipientLine) else recipientLine,
                 )
-                request.category?.let { ReviewRow("Category", it.label()) }
-                request.description?.let { ReviewRow("Note", it) }
-                ReviewRow("Fee", "None", showDivider = false)
+                request.category?.let { ReviewRow(stringResource(R.string.transfer_category), it.label()) }
+                request.description?.let { ReviewRow(stringResource(R.string.review_note), it) }
+                ReviewRow(stringResource(R.string.review_fee), stringResource(R.string.review_fee_none), showDivider = false)
             }
         }
 
         LoadingButton(
-            text = if (submitError != null) "Try again" else "Confirm and send",
+            text = stringResource(if (submitError != null) R.string.action_try_again else R.string.review_confirm),
             loading = isSubmitting,
             onClick = { onIntent(TransferIntent.Confirm) },
             modifier = Modifier.testTag("review_confirm"),
@@ -85,7 +84,7 @@ fun TransferReviewContent(
             onClick = { onIntent(TransferIntent.BackToForm) },
             enabled = !isSubmitting,
             modifier = Modifier.fillMaxWidth().testTag("review_back"),
-        ) { Text(if (request.destination is TransferDestination.OwnAccount) "Edit transfer" else "Back") }
+        ) { Text(stringResource(if (request.destination is TransferDestination.OwnAccount) R.string.review_edit else R.string.action_back)) }
     }
 }
 

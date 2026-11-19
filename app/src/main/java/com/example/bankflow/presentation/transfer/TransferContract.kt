@@ -7,7 +7,9 @@ import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.TransferDestination
 import com.example.bankflow.domain.model.TransferRequest
 import com.example.bankflow.domain.model.TransferResult
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.presentation.common.fieldError
+import com.example.bankflow.presentation.common.fieldText
 import com.example.bankflow.presentation.common.toBanner
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
@@ -71,9 +73,9 @@ data class TransferState(
             return number.takeIf { candidate -> beneficiaries.none { it.accountNumber == candidate } }
         }
 
-    val amountError: String? get() = formError.fieldError("amount")
-    val destinationError: String? get() = formError.fieldError("destination")
-    val noteError: String? get() = formError.fieldError("description")
+    val amountError: UiText? get() = formError.fieldText("amount")
+    val destinationError: UiText? get() = formError.fieldText("destination")
+    val noteError: UiText? get() = formError.fieldText("description")
     val banner: AppError? get() = formError.toBanner()
 }
 

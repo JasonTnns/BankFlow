@@ -1,5 +1,6 @@
 package com.example.bankflow.presentation.accounts.filter
 
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.Money
@@ -18,7 +19,7 @@ data class FilterDraft(
     val minAmountText: String = "",
     val maxAmountText: String = "",
 ) {
-    data class Errors(val minAmount: String? = null, val maxAmount: String? = null) {
+    data class Errors(val minAmount: FieldIssue? = null, val maxAmount: FieldIssue? = null) {
         val hasErrors: Boolean get() = minAmount != null || maxAmount != null
     }
 
@@ -33,7 +34,7 @@ data class FilterDraft(
         val max = parseAmount(maxAmountText)
 
         val minError = min.error
-        var maxError = max.error
+        maxError = FieldIssue.AmountMaxBelowMin
         val minMinor = min.minor
         val maxMinor = max.minor
         if (minError == null && maxError == null && minMinor != null && maxMinor != null && minMinor > maxMinor) {
@@ -66,12 +67,11 @@ data class FilterDraft(
     }
 }
 
-private class ParsedAmount(val minor: Long?, val error: String?)
-
+private class ParsedAmount(val minor: Long?, val error: FieldIssue?)
 private fun parseAmount(text: String): ParsedAmount {
     val trimmed = text.trim()
     if (trimmed.isEmpty()) return ParsedAmount(null, null)
-    val money = Money.parse(trimmed) ?: return ParsedAmount(null, "Enter an amount like 25 or 25.50")
+    val money = Money.parse(trimmed) ?: return ParsedAmount(null, FieldIssue.AmountInvalid)
     return ParsedAmount(money.minorUnits, null)
 }
 

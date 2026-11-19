@@ -30,12 +30,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.example.bankflow.R
 import com.example.bankflow.presentation.accounts.filter.ActiveFilterChip
 import com.example.bankflow.presentation.accounts.filter.FilterKind
+import com.example.bankflow.presentation.common.resolve
+import com.example.bankflow.presentation.common.uiString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -60,12 +64,12 @@ fun HistoryFilterBar(
                 value = searchText,
                 onValueChange = onSearchChange,
                 modifier = Modifier.weight(1f).testTag("history_search"),
-                placeholder = { Text("Search transactions") },
+                placeholder = { Text(stringResource(R.string.history_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
                 trailingIcon = {
                     if (searchText.isNotEmpty()) {
                         IconButton(onClick = { onSearchChange("") }) {
-                            Icon(Icons.Filled.Close, contentDescription = "Clear search")
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.history_clear_search))
                         }
                     }
                 },
@@ -77,7 +81,7 @@ fun HistoryFilterBar(
                 BadgedBox(badge = { if (chips.isNotEmpty()) Badge { Text(chips.size.toString()) } }) {
                     Icon(
                         imageVector = Icons.Filled.FilterList,
-                        contentDescription = if (chips.isEmpty()) "Filters" else "Filters, ${chips.size} active",
+                        contentDescription = if (chips.isEmpty()) stringResource(R.string.history_filters) else stringResource(R.string.history_filters_active, chips.size),
                     )
                 }
             }
@@ -90,10 +94,12 @@ fun HistoryFilterBar(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 items(chips, key = { it.kind }) { chip ->
+                    val chipLabel = chip.label.resolve()
+                    val removeDescription = uiString(R.string.history_remove_filter, chipLabel)
                     InputChip(
                         selected = true,
                         onClick = { onRemoveFilter(chip.kind) },
-                        label = { Text(chip.label) },
+                        label = { Text(chipLabel) },
                         trailingIcon = {
                             Icon(
                                 imageVector = Icons.Filled.Close,
@@ -102,12 +108,12 @@ fun HistoryFilterBar(
                             )
                         },
                         modifier = Modifier
-                            .semantics { contentDescription = "Remove filter: ${chip.label}" }
+                            .semantics { contentDescription = removeDescription }
                             .testTag("chip_${chip.kind.name}"),
                     )
                 }
                 item(key = "clear_all") {
-                    TextButton(onClick = onClearAll, modifier = Modifier.testTag("clear_all")) { Text("Clear all") }
+                    TextButton(onClick = onClearAll, modifier = Modifier.testTag("clear_all")) { Text(stringResource(R.string.action_clear_all)) }
                 }
             }
         }

@@ -18,13 +18,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Beneficiary
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.common.userMessage
 
 @Composable
@@ -43,19 +46,19 @@ fun SavedRecipients(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = "Saved recipients",
+                text = stringResource(R.string.recipients_title),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.semantics { heading() },
             )
             TextButton(onClick = onManage, modifier = Modifier.testTag("manage_recipients")) {
-                Text(if (beneficiaries.isEmpty()) "Add" else "Manage")
+                Text(stringResource(if (beneficiaries.isEmpty()) R.string.action_add else R.string.action_manage))
             }
         }
 
         if (beneficiaries.isEmpty()) {
             Text(
-                text = "People you save will appear here for one-tap transfers.",
+                text = stringResource(R.string.recipients_hint_empty),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -88,7 +91,7 @@ fun SaveRecipientPrompt(
 ) {
     when {
         state == SaveRecipientState.Saved -> Text(
-            text = "$recipientName is saved to your recipients",
+            text = uiString(R.string.recipients_saved_confirmation, recipientName),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.secondary,
             textAlign = TextAlign.Center,
@@ -113,7 +116,7 @@ fun SaveRecipientPrompt(
                 onClick = onSave,
                 enabled = state != SaveRecipientState.Saving,
                 modifier = Modifier.fillMaxWidth().testTag("save_recipient"),
-            ) { Text(if (state == SaveRecipientState.Saving) "Saving\u2026" else "Save $recipientName as a recipient") }
+            ) { Text(if (state == SaveRecipientState.Saving) stringResource(R.string.action_saving) else uiString(R.string.recipients_save_prompt, recipientName)) }
         }
     }
 }

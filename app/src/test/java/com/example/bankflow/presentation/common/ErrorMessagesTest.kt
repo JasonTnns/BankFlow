@@ -2,6 +2,7 @@ package com.example.bankflow.presentation.common
 
 import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.presentation.transfer.transferFailureText
 import com.example.bankflow.presentation.transfer.unknownOutcomeText
@@ -73,5 +74,36 @@ class ErrorMessagesTest {
         assertEquals(UiText.Res(R.string.unknown_outcome_slow), lead(AppError.Timeout))
         assertEquals(UiText.Res(R.string.unknown_outcome_generic), lead(AppError.Server(502)))
         assertEquals(R.string.unknown_outcome_format, (AppError.Timeout.unknownOutcomeText() as UiText.Res).id)
+    }
+
+    @Test
+    fun `a field's message is our own rule first, then the server's words`() {
+        val both: AppError = AppError.Validation(
+            fieldErrors = mapOf("email" to listOf("Server says no"), "name" to listOf("Server name")),
+            issues = mapOf("email" to listOf(FieldIssue.EmailInvalid)),
+        )
+
+        assertEquals(UiText.Res(R.string.issue_email_invalid), both.fieldText("email"))
+        assertEquals(UiText.Plain("Server name"), both.fieldText("name"))
+        assertNull(both.fieldText("password"))
+        assertNull((AppError.NoConnection as AppError).fieldText("email"))
+        assertNull(null.fieldText("email"))
+    }
+
+    @Test
+    fun `every field issue has its own message`() {
+        val everyIssue = listOf(
+            FieldIssue.EmailRequired, FieldIssue.EmailInvalid, FieldIssue.PasswordRequired,
+            FieldIssue.PasswordTooShort(8), FieldIssue.PasswordNeedsLetterAndNumber, FieldIssue.PasswordTooLong,
+            FieldIssue.NameRequired, FieldIssue.NameTooLong(100), FieldIssue.AmountRequired, FieldIssue.AmountInvalid,
+            FieldIssue.AmountNotPositive, FieldIssue.AmountTooLarge, FieldIssue.AmountMaxBelowMin,
+            FieldIssue.InsufficientFunds(Money(100)), FieldIssue.AccountNumberInvalid, FieldIssue.DestinationRequired,
+            FieldIssue.DestinationNotFound, FieldIssue.DestinationIsSource, FieldIssue.DescriptionTooLong(140),
+            FieldIssue.NicknameRequired, FieldIssue.NicknameTooLong(40), FieldIssue.Invalid,
+        )
+
+        val ids = everyIssue.map { (it.toText() as UiText.Res).id }
+
+        assertEquals(ids.size, ids.toSet().size)
     }
 }

@@ -33,14 +33,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Beneficiary
 import com.example.bankflow.presentation.auth.ErrorBanner
+import com.example.bankflow.presentation.common.resolve
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.common.userMessage
 import com.example.bankflow.presentation.components.EmptyState
 import com.example.bankflow.presentation.components.ErrorState
@@ -65,10 +69,10 @@ fun BeneficiariesContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Saved recipients") },
+                title = { Text(stringResource(R.string.recipients_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -78,7 +82,7 @@ fun BeneficiariesContent(
                 ExtendedFloatingActionButton(
                     onClick = { onIntent(BeneficiariesIntent.OpenAdd) },
                     icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-                    text = { Text("Add recipient") },
+                    text = { Text(stringResource(R.string.recipients_add)) },
                     modifier = Modifier.testTag("add_recipient"),
                 )
             }
@@ -90,7 +94,7 @@ fun BeneficiariesContent(
                 state.isLoading && !state.hasLoaded -> CircularProgressIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .semantics { contentDescription = "Loading recipients" },
+                        .semantics { contentDescription = loadingText },
                 )
                 loadError != null && !state.hasLoaded -> ErrorState(
                     error = loadError,
@@ -98,9 +102,9 @@ fun BeneficiariesContent(
                     modifier = Modifier.align(Alignment.Center),
                 )
                 state.isEmpty -> EmptyState(
-                    title = "No saved recipients",
-                    message = "Save the people you pay often, and send them money in one tap.",
-                    actionLabel = "Add recipient",
+                    title = stringResource(R.string.recipients_empty_title),
+                    message = stringResource(R.string.recipients_empty_message),
+                    actionLabel = stringResource(R.string.recipients_add),
                     onAction = { onIntent(BeneficiariesIntent.OpenAdd) },
                     modifier = Modifier.align(Alignment.Center),
                 )
@@ -130,11 +134,16 @@ private fun RecipientRow(beneficiary: Beneficiary, onDelete: () -> Unit) {
         headlineContent = { Text(beneficiary.nickname) },
         supportingContent = {
             val unavailable = if (beneficiary.isActive) "" else " \u00B7 Unavailable"
-            Text("${beneficiary.displayName} \u00B7 ${beneficiary.accountNumberMasked}$unavailable")
-        },
+            Text(
+                if (beneficiary.isActive) {
+                    uiString(R.string.pair_dot, beneficiary.displayName, beneficiary.accountNumberMasked)
+                } else {
+                    uiString(R.string.recipients_row_unavailable, beneficiary.displayName, beneficiary.accountNumberMasked)
+                },
+            )        },
         trailingContent = {
             IconButton(onClick = onDelete) {
-                Icon(Icons.Filled.Delete, contentDescription = "Delete ${beneficiary.nickname}")
+                Icon(Icons.Filled.Delete, contentDescription = uiString(R.string.recipients_delete_description, beneficiary.nickname))
             }
         },
         modifier = Modifier.testTag("recipient_${beneficiary.id}"),
@@ -145,7 +154,7 @@ private fun RecipientRow(beneficiary: Beneficiary, onDelete: () -> Unit) {
 private fun AddRecipientDialog(form: AddRecipientForm, onIntent: (BeneficiariesIntent) -> Unit) {
     AlertDialog(
         onDismissRequest = { onIntent(BeneficiariesIntent.DismissAdd) },
-        title = { Text("Add recipient") },
+        title = { Text(stringResource(R.string.recipients_add)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 form.banner?.let { ErrorBanner(it.userMessage(), Modifier.testTag("add_error")) }
@@ -153,22 +162,22 @@ private fun AddRecipientDialog(form: AddRecipientForm, onIntent: (BeneficiariesI
                     value = form.nickname,
                     onValueChange = { onIntent(BeneficiariesIntent.NicknameChanged(it)) },
                     modifier = Modifier.testTag("add_nickname"),
-                    label = { Text("Name, e.g. Mum") },
+                    label = { Text(stringResource(R.string.recipients_name_label)) },
                     singleLine = true,
                     enabled = !form.isSaving,
                     isError = form.nicknameError != null,
-                    supportingText = form.nicknameError?.let { { Text(it) } },
+                    supportingText = form.nicknameError?.let { error -> { Text(error.resolve()) } },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                 )
                 OutlinedTextField(
                     value = form.accountNumber,
                     onValueChange = { onIntent(BeneficiariesIntent.NumberChanged(it)) },
                     modifier = Modifier.testTag("add_number"),
-                    label = { Text("Account number") },
+                    label = { Text(stringResource(R.string.transfer_account_number)) },
                     singleLine = true,
                     enabled = !form.isSaving,
                     isError = form.accountNumberError != null,
-                    supportingText = { Text(form.accountNumberError ?: "12 digits") },
+                    supportingText = { Text(form.accountNumberError?.resolve() ?: stringResource(R.string.recipients_number_hint)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
                 )
             }
@@ -178,10 +187,10 @@ private fun AddRecipientDialog(form: AddRecipientForm, onIntent: (BeneficiariesI
                 onClick = { onIntent(BeneficiariesIntent.SaveNew) },
                 enabled = !form.isSaving,
                 modifier = Modifier.testTag("add_save"),
-            ) { Text(if (form.isSaving) "Saving\u2026" else "Save") }
+            ) { Text(stringResource(if (form.isSaving) R.string.action_saving else R.string.action_save)) }
         },
         dismissButton = {
-            TextButton(onClick = { onIntent(BeneficiariesIntent.DismissAdd) }) { Text("Cancel") }
+            TextButton(onClick = { onIntent(BeneficiariesIntent.DismissAdd) }) { Text(stringResource(R.string.action_cancel)) }
         },
     )
 }
@@ -194,19 +203,16 @@ private fun DeleteRecipientDialog(
 ) {
     AlertDialog(
         onDismissRequest = { if (!isDeleting) onIntent(BeneficiariesIntent.CancelDelete) },
-        title = { Text("Delete recipient?") },
+        title = { Text(stringResource(R.string.recipients_delete_title)) },
         text = {
-            Text(
-                "${target.nickname} (${target.displayName}) will be removed from your saved recipients. " +
-                        "You can add them again later.",
-            )
+            Text(uiString(R.string.recipients_delete_message, target.nickname, target.displayName))
         },
         confirmButton = {
             TextButton(
                 onClick = { onIntent(BeneficiariesIntent.ConfirmDelete) },
                 enabled = !isDeleting,
                 modifier = Modifier.testTag("delete_confirm"),
-            ) { Text("Delete") }
+            ) { Text(stringResource(R.string.action_delete)) }
         },
         dismissButton = {
             TextButton(

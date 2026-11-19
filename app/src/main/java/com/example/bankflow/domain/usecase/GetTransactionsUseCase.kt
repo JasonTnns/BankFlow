@@ -2,6 +2,7 @@ package com.example.bankflow.domain.usecase
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Cached
 import com.example.bankflow.domain.model.TransactionFilter
 import com.example.bankflow.domain.model.TransactionPage
@@ -21,20 +22,18 @@ class GetTransactionsUseCase(
     ): AppResult<TransactionPage> {
         suspend fun cached(accountId: String): Cached<TransactionPage>? =
             accountRepository.getCachedTransactions(accountId)
-        val fields = linkedMapOf<String, List<String>>()
+        val issues = linkedMapOf<String, List<FieldIssue>>()
 
         if (filter.from != null && filter.to != null && filter.from.isAfter(filter.to)) {
-            fields["dateRange"] = listOf("Start date must be before end date")
+            issues["dateRange"] = listOf(FieldIssue.Invalid)
         }
         if (filter.minAmountMinor != null && filter.maxAmountMinor != null &&
             filter.minAmountMinor > filter.maxAmountMinor
         ) {
-            fields["amountRange"] = listOf("Minimum amount must not exceed the maximum")
+            issues["amountRange"] = listOf(FieldIssue.AmountMaxBelowMin)
         }
-        if ((filter.search?.trim()?.length ?: 0) > MAX_SEARCH_LENGTH) {
-            fields["search"] = listOf("Search text is too long")
-        }
-        if (fields.isNotEmpty()) return AppResult.Failure(AppError.Validation(fieldErrors = fields))
+        if ((filter.search?.trim()?.length ?: 0) > MAX_SEARCH_LENGTH) issues["search"] = listOf(FieldIssue.Invalid)
+        if (issues.isNotEmpty()) return AppResult.Failure(AppError.Validation(issues = issues))
 
         val cleanFilter = filter.copy(search = filter.search?.trim()?.takeIf { it.isNotEmpty() })
         return accountRepository.getTransactions(

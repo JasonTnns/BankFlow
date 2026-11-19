@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
@@ -57,11 +58,15 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.bankflow.BuildConfig
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Profile
 import com.example.bankflow.domain.model.ThemePreference
 import com.example.bankflow.presentation.auth.ErrorBanner
+import com.example.bankflow.presentation.common.descriptionRes
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.formatDate
+import com.example.bankflow.presentation.common.labelRes
+import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.userMessage
 import com.example.bankflow.presentation.components.ErrorState
 import com.example.bankflow.presentation.components.InlineError
@@ -92,6 +97,7 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileContent(
+    val loadingText: String = stringResource(R.string.profile_loading),
     state: ProfileState,
     onIntent: (ProfileIntent) -> Unit,
     onOpenRecipients: () -> Unit,
@@ -101,7 +107,7 @@ fun ProfileContent(
 ) {
     var confirmLogout by rememberSaveable { mutableStateOf(false) }
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Profile") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.profile_title)) }) }) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
             val profile = state.profile
             val loadError = state.loadError
@@ -118,7 +124,7 @@ fun ProfileContent(
                 state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .semantics { contentDescription = "Loading profile" },
+                        .semantics { contentDescription = loadingText },
                 )
                 loadError != null -> ErrorState(
                     error = loadError,
@@ -134,8 +140,8 @@ fun ProfileContent(
     if (confirmLogout) {
         AlertDialog(
             onDismissRequest = { confirmLogout = false },
-            title = { Text("Log out?") },
-            text = { Text("You'll need to sign in again to see your accounts.") },
+            title = { Text(stringResource(R.string.profile_logout_title)) },
+            text = { Text(stringResource(R.string.profile_logout_message)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -143,11 +149,11 @@ fun ProfileContent(
                         onLogout()
                     },
                     modifier = Modifier.testTag("logout_confirm"),
-                ) { Text("Log out") }
+                ) { Text(stringResource(R.string.action_log_out)) }
             },
             dismissButton = {
                 TextButton(onClick = { confirmLogout = false }, modifier = Modifier.testTag("logout_cancel")) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
         )
@@ -172,11 +178,11 @@ private fun ProfileBody(
     ) {
         ProfileHeader(profile)
 
-        SectionTitle("Account")
+        SectionTitle(stringResource(R.string.profile_section_account))
         Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Column {
                 InfoRow(
-                    label = "Name",
+                    label = stringResource(R.string.profile_name),
                     value = profile.user.fullName,
                     tag = "row_name",
                     trailing = {
@@ -184,22 +190,22 @@ private fun ProfileBody(
                             onClick = { onIntent(ProfileIntent.OpenNameEdit) },
                             enabled = !state.isUpdating,
                             modifier = Modifier.testTag("profile_edit_name"),
-                        ) { Text("Edit") }
+                        ) { Text(stringResource(R.string.action_edit)) }
                     },
                 )
-                InfoRow("Email", profile.user.email, tag = "row_email")
-                InfoRow("Member since", profile.memberSince.formatDate(), tag = "row_since")
-                InfoRow("Daily transfer limit", profile.dailyTransferLimit.format(), tag = "row_limit", showDivider = false)
+                InfoRow(stringResource(R.string.auth_email), profile.user.email, tag = "row_email")
+                InfoRow(stringResource(R.string.profile_member_since), profile.memberSince.formatDate(), tag = "row_since")
+                InfoRow(stringResource(R.string.profile_daily_limit), profile.dailyTransferLimit.format(), tag = "row_limit", showDivider = false)
             }
         }
         Text(
-            text = "Your email and transfer limit can't be changed here.",
+            text = stringResource(R.string.profile_read_only_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         )
 
-        SectionTitle("Appearance")
+        SectionTitle(stringResource(R.string.profile_section_appearance))
         state.themeError?.let { error ->
             InlineError(error, onRetry = null, modifier = Modifier.testTag("theme_error"))
         }
@@ -217,7 +223,7 @@ private fun ProfileBody(
             }
         }
         securitySection()
-        SectionTitle("Payments")
+        SectionTitle(stringResource(R.string.profile_section_payments))
         Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
             Row(
                 modifier = Modifier
@@ -229,9 +235,9 @@ private fun ProfileBody(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Saved recipients", style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.recipients_title), style = MaterialTheme.typography.bodyLarge)
                     Text(
-                        text = "The people you send money to",
+                        text = stringResource(R.string.profile_recipients_support),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -240,12 +246,12 @@ private fun ProfileBody(
             }
         }
 
-        SectionTitle("About")
+        SectionTitle(stringResource(R.string.profile_section_about))
         Card(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-            InfoRow("Version", appVersion, tag = "row_version", showDivider = false)
+            InfoRow(stringResource(R.string.profile_version), appVersion, tag = "row_version", showDivider = false)
         }
         Text(
-            text = "BankFlow is a demo app. No real money is involved.",
+            text = stringResource(R.string.profile_demo_note),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -348,9 +354,9 @@ private fun ThemeOption(
     ) {
         RadioButton(selected = selected, onClick = null, enabled = enabled)
         Column {
-            Text(theme.themeLabel(), style = MaterialTheme.typography.bodyLarge)
+            Text(stringResource(theme.labelRes()), style = MaterialTheme.typography.bodyLarge)
             Text(
-                text = theme.themeDescription(),
+                text = stringResource(theme.descriptionRes()),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -362,7 +368,7 @@ private fun ThemeOption(
 private fun NameDialog(edit: NameEdit, isUpdating: Boolean, onIntent: (ProfileIntent) -> Unit) {
     AlertDialog(
         onDismissRequest = { if (!edit.isSaving) onIntent(ProfileIntent.DismissNameEdit) },
-        title = { Text("Edit name") },
+        title = { Text(stringResource(R.string.profile_name_dialog_title)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 edit.banner?.let { ErrorBanner(it.userMessage(), Modifier.testTag("name_error")) }
@@ -370,11 +376,11 @@ private fun NameDialog(edit: NameEdit, isUpdating: Boolean, onIntent: (ProfileIn
                     value = edit.value,
                     onValueChange = { onIntent(ProfileIntent.NameChanged(it)) },
                     modifier = Modifier.testTag("name_field"),
-                    label = { Text("Full name") },
+                    label = { Text(stringResource(R.string.register_full_name)) },
                     singleLine = true,
                     enabled = !edit.isSaving,
                     isError = edit.fieldError != null,
-                    supportingText = edit.fieldError?.let { { Text(it) } },
+                    supportingText = edit.fieldError?.let { error -> { Text(error.resolve()) } },
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Words,
                         imeAction = ImeAction.Done,
@@ -388,7 +394,7 @@ private fun NameDialog(edit: NameEdit, isUpdating: Boolean, onIntent: (ProfileIn
                 onClick = { onIntent(ProfileIntent.SaveName) },
                 enabled = !isUpdating,
                 modifier = Modifier.testTag("name_save"),
-            ) { Text(if (edit.isSaving) "Saving\u2026" else "Save") }
+            ) { Text(stringResource(if (edit.isSaving) R.string.action_saving else R.string.action_save)) }
         },
         dismissButton = {
             TextButton(

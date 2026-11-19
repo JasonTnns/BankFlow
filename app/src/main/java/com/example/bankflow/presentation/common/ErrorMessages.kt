@@ -3,6 +3,7 @@ package com.example.bankflow.presentation.common
 import androidx.compose.runtime.Composable
 import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
+import com.example.bankflow.domain.common.FieldIssue
 
 fun AppError.userText(): UiText = when (this) {
     AppError.NoConnection -> UiText.Res(R.string.error_no_connection)
@@ -29,5 +30,34 @@ fun AppError.userText(): UiText = when (this) {
 
 @Composable
 fun AppError.userMessage(): String = userText().resolve()
-fun AppError?.fieldError(field: String): String? =
-    (this as? AppError.Validation)?.fieldErrors?.get(field)?.firstOrNull()
+
+fun FieldIssue.toText(): UiText = when (this) {
+    FieldIssue.EmailRequired -> UiText.Res(R.string.issue_email_required)
+    FieldIssue.EmailInvalid -> UiText.Res(R.string.issue_email_invalid)
+    FieldIssue.PasswordRequired -> UiText.Res(R.string.issue_password_required)
+    is FieldIssue.PasswordTooShort -> UiText.Res(R.string.issue_password_too_short, listOf(min))
+    FieldIssue.PasswordNeedsLetterAndNumber -> UiText.Res(R.string.issue_password_needs_letter_number)
+    FieldIssue.PasswordTooLong -> UiText.Res(R.string.issue_password_too_long)
+    FieldIssue.NameRequired -> UiText.Res(R.string.issue_name_required)
+    is FieldIssue.NameTooLong -> UiText.Res(R.string.issue_name_too_long, listOf(max))
+    FieldIssue.AmountRequired -> UiText.Res(R.string.issue_amount_required)
+    FieldIssue.AmountInvalid -> UiText.Res(R.string.issue_amount_invalid)
+    FieldIssue.AmountNotPositive -> UiText.Res(R.string.issue_amount_not_positive)
+    FieldIssue.AmountTooLarge -> UiText.Res(R.string.issue_amount_too_large)
+    FieldIssue.AmountMaxBelowMin -> UiText.Res(R.string.issue_amount_max_below_min)
+    is FieldIssue.InsufficientFunds -> UiText.Res(R.string.issue_insufficient_funds, listOf(available))
+    FieldIssue.AccountNumberInvalid -> UiText.Res(R.string.issue_account_number_invalid)
+    FieldIssue.DestinationRequired -> UiText.Res(R.string.issue_destination_required)
+    FieldIssue.DestinationNotFound -> UiText.Res(R.string.issue_destination_not_found)
+    FieldIssue.DestinationIsSource -> UiText.Res(R.string.issue_destination_is_source)
+    is FieldIssue.DescriptionTooLong -> UiText.Res(R.string.issue_description_too_long, listOf(max))
+    FieldIssue.NicknameRequired -> UiText.Res(R.string.issue_nickname_required)
+    is FieldIssue.NicknameTooLong -> UiText.Res(R.string.issue_nickname_too_long, listOf(max))
+    FieldIssue.Invalid -> UiText.Res(R.string.issue_invalid)
+}
+
+fun AppError?.fieldText(field: String): UiText? {
+    val validation = this as? AppError.Validation ?: return null
+    validation.issues[field]?.firstOrNull()?.let { return it.toText() }
+    return validation.fieldErrors[field]?.firstOrNull()?.let { UiText.Plain(it) }
+}

@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.example.bankflow.R
 
 @Composable
 internal fun AuthTextField(
@@ -85,7 +87,7 @@ internal fun PasswordField(
     AuthTextField(
         value = value,
         onValueChange = onValueChange,
-        label = "Password",
+        label = stringResource(R.string.auth_password),
         modifier = modifier,
         enabled = enabled,
         errorText = errorText,
@@ -97,7 +99,7 @@ internal fun PasswordField(
             IconButton(onClick = onToggleVisibility) {
                 Icon(
                     imageVector = if (visible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
-                    contentDescription = if (visible) "Hide password" else "Show password",
+                    contentDescription = if (visible) stringResource(R.string.auth_hide_password) else stringResource(R.string.auth_show_password)
                 )
             }
         },
@@ -134,10 +136,12 @@ internal fun ErrorBanner(message: String, modifier: Modifier = Modifier) {
 
 @Composable
 internal fun LoadingButton(
+    val loadingState = stringResource(R.string.loading),
     text: String,
     loading: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    stateDescription = loadingState
 ) {
     Button(
         onClick = onClick,

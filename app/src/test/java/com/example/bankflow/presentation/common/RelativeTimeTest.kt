@@ -21,15 +21,11 @@ class RelativeTimeTest {
     }
 
     @Test
-    fun `minutes`() {
-        assertEquals(UiText.Res(R.string.saved_data_minutes, listOf(1L)), text("2026-10-29T11:59:00Z"))
-        assertEquals(UiText.Res(R.string.saved_data_minutes, listOf(59L)), text("2026-10-29T11:00:30Z"))
-    }
-
-    @Test
-    fun `hours`() {
-        assertEquals(UiText.Res(R.string.saved_data_hours, listOf(1L)), text("2026-10-29T11:00:00Z"))
-        assertEquals(UiText.Res(R.string.saved_data_hours, listOf(23L)), text("2026-10-28T12:30:00Z"))
+    fun `minutes and hours are plurals, so every language gets its own forms`() {
+        assertEquals(UiText.Plural(R.plurals.saved_data_minutes, 1), text("2026-10-29T11:59:00Z"))
+        assertEquals(UiText.Plural(R.plurals.saved_data_minutes, 59), text("2026-10-29T11:00:30Z"))
+        assertEquals(UiText.Plural(R.plurals.saved_data_hours, 1), text("2026-10-29T11:00:00Z"))
+        assertEquals(UiText.Plural(R.plurals.saved_data_hours, 23), text("2026-10-28T12:30:00Z"))
     }
 
     @Test

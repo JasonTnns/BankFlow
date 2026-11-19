@@ -9,6 +9,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.presentation.accounts.FilterSheetContent
@@ -79,8 +80,7 @@ class FilterSheetContentTest {
 
     @Test
     fun amountErrorsAreShownUnderTheirFields() {
-        show(errors = FilterDraft.Errors(minAmount = "Enter an amount like 25 or 25.50"))
-
+        FilterDraft.Errors(minAmount = FieldIssue.AmountInvalid)
         composeRule.onNodeWithText("Enter an amount like 25 or 25.50").performScrollTo().assertIsDisplayed()
     }
 

@@ -2,6 +2,7 @@ package com.example.bankflow.domain.usecase
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Account
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.model.TransferDestination
@@ -24,42 +25,33 @@ class TransferMoneyUseCase(
     }
 
     fun validate(request: TransferRequest, source: Account): AppError? {
-        val fields = linkedMapOf<String, List<String>>()
+        val issues = linkedMapOf<String, List<FieldIssue>>()
 
-        if (request.idempotencyKey.isBlank()) {
-            fields["idempotencyKey"] = listOf("Missing idempotency key")
-        }
-        if (request.sourceAccountId != source.id) {
-            fields["sourceAccountId"] = listOf("Source account does not match")
-        }
+        if (request.idempotencyKey.isBlank()) issues["idempotencyKey"] = listOf(FieldIssue.Invalid)
+        if (request.sourceAccountId != source.id) issues["sourceAccountId"] = listOf(FieldIssue.Invalid)
 
         val amount = request.amount
         when {
-            amount.currency != source.balance.currency ->
-                fields["amount"] = listOf("Amount currency must match the account")
-            amount.minorUnits <= 0 ->
-                fields["amount"] = listOf("Enter an amount greater than zero")
-            amount.minorUnits > Money.MAX_TRANSFER_MINOR ->
-                fields["amount"] = listOf("Amount is above the maximum for one transfer")
+            amount.currency != source.balance.currency -> issues["amount"] = listOf(FieldIssue.Invalid)
+            amount.minorUnits <= 0 -> issues["amount"] = listOf(FieldIssue.AmountNotPositive)
+            amount.minorUnits > Money.MAX_TRANSFER_MINOR -> issues["amount"] = listOf(FieldIssue.AmountTooLarge)
         }
 
         when (val destination = request.destination) {
             is TransferDestination.AccountNumber ->
                 if (!ACCOUNT_NUMBER.matches(destination.number.trim())) {
-                    fields["destination"] = listOf("Account number must be 12 digits")
+                    issues["destination"] = listOf(FieldIssue.AccountNumberInvalid)
                 }
             is TransferDestination.OwnAccount ->
-                if (destination.accountId.isBlank()) {
-                    fields["destination"] = listOf("Choose a destination account")
-                }
+                if (destination.accountId.isBlank()) issues["destination"] = listOf(FieldIssue.DestinationRequired)
         }
 
         val description = request.description?.trim()
         if (description != null && description.length > MAX_DESCRIPTION_LENGTH) {
-            fields["description"] = listOf("Description is too long (max $MAX_DESCRIPTION_LENGTH characters)")
+            issues["description"] = listOf(FieldIssue.DescriptionTooLong(MAX_DESCRIPTION_LENGTH))
         }
 
-        if (fields.isNotEmpty()) return AppError.Validation(fieldErrors = fields)
+        if (issues.isNotEmpty()) return AppError.Validation(issues = issues)
 
         val sameAccount = when (val destination = request.destination) {
             is TransferDestination.OwnAccount -> destination.accountId == source.id

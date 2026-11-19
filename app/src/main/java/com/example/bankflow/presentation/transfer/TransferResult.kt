@@ -39,6 +39,9 @@ import androidx.compose.animation.core.spring
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.stringResource
+import com.example.bankflow.R
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.rememberReduceMotion
 
 @Composable
@@ -78,21 +81,21 @@ fun TransferSuccessContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         ) {
-            Text("Transfer sent", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            Text(stringResource(R.string.success_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             Text(
                 text = result.transfer.amount.format(),
                 style = MaterialTheme.typography.displaySmall,
                 modifier = Modifier.testTag("success_amount"),
             )
             review?.let {
-                Text("to ${it.recipientName}", style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+                Text(uiString(R.string.review_to, it.recipientName), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
             }
         }
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column {
-                ResultRow("New balance", result.sourceAccountBalance.format(), tag = "success_balance")
-                ResultRow("Reference", result.transfer.id, tag = "success_reference", monospace = true, showDivider = false)
+                ResultRow(stringResource(R.string.success_new_balance), result.sourceAccountBalance.format(), tag = "success_balance")
+                ResultRow(stringResource(R.string.details_reference), result.transfer.id, tag = "success_reference", monospace = true, showDivider = false)
             }
         }
         review?.let {
@@ -103,9 +106,9 @@ fun TransferSuccessContent(
                 onSave = onSaveRecipient,
             )
         }
-        Button(onClick = onDone, modifier = Modifier.fillMaxWidth().testTag("success_done")) { Text("Done") }
+        Button(onClick = onDone, modifier = Modifier.fillMaxWidth().testTag("success_done")) { Text(stringResource(R.string.action_done)) }
         OutlinedButton(onClick = onAnother, modifier = Modifier.fillMaxWidth().testTag("success_another")) {
-            Text("Make another transfer")
+            Text(stringResource(R.string.success_another))
         }
     }
 }
@@ -133,7 +136,7 @@ fun TransferFailureContent(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         ) {
-            Text("Transfer not sent", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
+            Text(stringResource(R.string.failure_title), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.semantics { heading() })
             Text(
                 text = error.transferFailureMessage(),
                 style = MaterialTheme.typography.bodyLarge,
@@ -141,13 +144,13 @@ fun TransferFailureContent(
                 modifier = Modifier.testTag("failure_message"),
             )
             Text(
-                text = "No money was moved.",
+                text = stringResource(R.string.failure_no_money),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        Button(onClick = onEdit, modifier = Modifier.fillMaxWidth().testTag("failure_edit")) { Text("Edit transfer") }
-        OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth().testTag("failure_close")) { Text("Close") }
+        Button(onClick = onEdit, modifier = Modifier.fillMaxWidth().testTag("failure_edit")) { Text(stringResource(R.string.review_edit)) }
+        OutlinedButton(onClick = onClose, modifier = Modifier.fillMaxWidth().testTag("failure_close")) { Text(stringResource(R.string.action_close)) }
     }
 }
 

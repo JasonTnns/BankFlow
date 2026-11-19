@@ -30,17 +30,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.CategorySpend
 import com.example.bankflow.domain.model.SpendingSummary
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.formatSigned
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.labelRes
+import com.example.bankflow.presentation.common.resolve
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.EmptyState
 import com.example.bankflow.presentation.components.ErrorState
 import com.example.bankflow.presentation.components.InlineError
@@ -60,7 +66,7 @@ fun InsightsContent(
     state: InsightsState,
     onIntent: (InsightsIntent) -> Unit,
 ) {
-    Scaffold(topBar = { TopAppBar(title = { Text("Insights") }) }) { padding ->
+    Scaffold(topBar = { TopAppBar(title = { Text(stringResource(R.string.insights_title)) }) }) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             MonthSelector(
                 title = state.month.title(),
@@ -107,9 +113,8 @@ private fun androidx.compose.foundation.lazy.LazyListScope.summaryItems(
     if (summary.isEmpty) {
         item(key = "empty") {
             EmptyState(
-                title = "No activity in ${state.month.title()}",
-                message = "Money you send and receive this month will show up here.",
-            )
+                title = uiString(R.string.insights_empty_title, state.month.title()),
+                message = stringResource(R.string.insights_empty_message),            )
         }
         return
     }
@@ -119,7 +124,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.summaryItems(
     comparisonText(summary, state.previous, state.previousMonth)?.let { text ->
         item(key = "comparison") {
             Text(
-                text = text,
+                text = text.resolve(),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
@@ -129,12 +134,12 @@ private fun androidx.compose.foundation.lazy.LazyListScope.summaryItems(
         }
     }
 
-    item(key = "categories_title") { SectionTitle("Spending by category") }
+    item(key = "categories_title") { SectionTitle(stringResource(R.string.insights_categories_title)) }
 
     if (summary.byCategory.isEmpty()) {
         item(key = "no_spending") {
             Text(
-                text = "You didn't spend anything this month.",
+                text = stringResource(R.string.insights_no_spending),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp).testTag("insights_no_spending"),
@@ -165,7 +170,7 @@ private fun MonthSelector(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         IconButton(onClick = onPrevious, modifier = Modifier.testTag("month_previous")) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = "Previous month")
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, contentDescription = stringResource(R.string.insights_previous_month))
         }
         Text(
             text = title,
@@ -174,7 +179,7 @@ private fun MonthSelector(
             modifier = Modifier.testTag("month_title").semantics { heading() },
         )
         IconButton(onClick = onNext, enabled = canGoNext, modifier = Modifier.testTag("month_next")) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = "Next month")
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = stringResource(R.string.insights_next_month))
         }
     }
 }
@@ -186,16 +191,17 @@ private fun TotalsCards(summary: SpendingSummary) {
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            TotalCard("Spent", summary.spent.format(), "insights_spent", Modifier.weight(1f))
-            TotalCard("Income", summary.income.format(), "insights_income", Modifier.weight(1f))
+            TotalCard(stringResource(R.string.insights_spent), summary.spent.format(), "insights_spent", Modifier.weight(1f))
+            TotalCard(stringResource(R.string.insights_income), summary.income.format(), "insights_income", Modifier.weight(1f))
         }
-        TotalCard("Net", summary.net.formatSigned(), "insights_net", Modifier.fillMaxWidth())
+        TotalCard(stringResource(R.string.insights_net), summary.net.formatSigned(), "insights_net", Modifier.fillMaxWidth())
     }
 }
 
 @Composable
 private fun TotalCard(label: String, value: String, tag: String, modifier: Modifier) {
-    Card(modifier = modifier.semantics(mergeDescendants = true) { contentDescription = "$label, $value" }) {
+    val spoken = uiString(R.string.insights_total_spoken, label, value)
+    Card(modifier = modifier.semantics(mergeDescendants = true) { contentDescription = spoken }) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(value, style = MaterialTheme.typography.titleLarge, modifier = Modifier.testTag(tag))
@@ -207,8 +213,15 @@ private fun TotalCard(label: String, value: String, tag: String, modifier: Modif
 private fun CategoryRow(spend: CategorySpend, percent: Int, barFraction: Float) {
     val name = spend.category.label()
     val amount = spend.spent.format()
-    val spoken = "$name, $amount, ${shareLabel(percent)} of spending, ${spend.count} " +
-            if (spend.count == 1) "transaction" else "transactions"
+    val spoken = UiText.Res(
+        R.string.insights_category_spoken,
+        listOf(
+            UiText.Res(spend.category.labelRes()),
+            spend.spent,
+            shareLabel(percent),
+            UiText.Plural(R.plurals.insights_transactions, spend.count),
+        ),
+    ).resolve()
 
     Column(
         modifier = Modifier
@@ -235,7 +248,7 @@ private fun CategoryRow(spend: CategorySpend, percent: Int, barFraction: Float) 
         }
         LinearProgressIndicator(progress = { barFraction }, modifier = Modifier.fillMaxWidth())
         Text(
-            text = "${shareLabel(percent)} of spending",
+            text = uiString(R.string.insights_share, shareLabel(percent).resolve()),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -244,10 +257,11 @@ private fun CategoryRow(spend: CategorySpend, percent: Int, barFraction: Float) 
 
 @Composable
 private fun InsightsSkeleton() {
+    val loadingText = stringResource(R.string.insights_loading)
     Column(
         modifier = Modifier
             .padding(16.dp)
-            .semantics { contentDescription = "Loading insights" },
+            .semantics { contentDescription = loadingText },
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

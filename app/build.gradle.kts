@@ -101,6 +101,7 @@ ksp {
 dependencies {
 
     implementation(libs.androidx.profileinstaller)
+    implementation(libs.androidx.ui)
     baselineProfile(project(":baselineprofile"))
 
     implementation(libs.androidx.biometric)

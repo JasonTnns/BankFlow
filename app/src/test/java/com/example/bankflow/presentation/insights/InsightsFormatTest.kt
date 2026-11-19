@@ -1,6 +1,8 @@
 package com.example.bankflow.presentation.insights
 
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Category
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.testutil.testSummary
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -23,31 +25,23 @@ class InsightsFormatTest {
 
     @Test
     fun `tiny shares are not shown as zero`() {
-        assertEquals("<1%", shareLabel(0))
-        assertEquals("1%", shareLabel(1))
-        assertEquals("87%", shareLabel(87))
+        assertEquals(UiText.Res(R.string.share_less_than_one), shareLabel(0))
+        assertEquals(UiText.Res(R.string.share_percent, listOf(1)), shareLabel(1))
+        assertEquals(UiText.Res(R.string.share_percent, listOf(87)), shareLabel(87))
     }
 
     @Test
-    fun `more spending than last month`() {
+    fun `more, less and the same spending compared with last month`() {
         assertEquals(
-            "10% more than September",
+            UiText.Res(R.string.insights_comparison_more, listOf(10, "September")),
             comparisonText(spending(11_000), spending(10_000), september, Locale.US),
         )
-    }
-
-    @Test
-    fun `less spending than last month`() {
         assertEquals(
-            "25% less than September",
+            UiText.Res(R.string.insights_comparison_less, listOf(25, "September")),
             comparisonText(spending(7_500), spending(10_000), september, Locale.US),
         )
-    }
-
-    @Test
-    fun `the same spending`() {
         assertEquals(
-            "Same as September",
+            UiText.Res(R.string.insights_comparison_same, listOf("September")),
             comparisonText(spending(10_000), spending(10_000), september, Locale.US),
         )
     }

@@ -1,8 +1,13 @@
 package com.example.bankflow.presentation.beneficiaries
 
 import com.example.bankflow.domain.common.AppError
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Beneficiary
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.presentation.common.fieldError
+import com.example.bankflow.presentation.common.fieldText
+import com.example.bankflow.presentation.common.toText
+import com.example.bankflow.presentation.common.userText
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
 
@@ -12,19 +17,19 @@ data class AddRecipientForm(
     val isSaving: Boolean = false,
     val error: AppError? = null,
 ) {
-    val nicknameError: String? get() = error.fieldError("nickname")
+    val nicknameError: UiText? get() = error.fieldText("nickname")
 
-    val accountNumberError: String?
-        get() = error.fieldError("accountNumber") ?: when (error) {
-            AppError.NotFound -> "No account found with that number"
-            AppError.BeneficiaryExists -> "This recipient is already saved"
+    val accountNumberError: UiText?
+        get() = error.fieldText("accountNumber") ?: when (error) {
+            AppError.NotFound -> FieldIssue.DestinationNotFound.toText()
+            AppError.BeneficiaryExists -> AppError.BeneficiaryExists.userText()
             else -> null
         }
 
     val banner: AppError?
         get() = when (val e = error) {
             null, AppError.NotFound, AppError.BeneficiaryExists -> null
-            is AppError.Validation -> if (e.fieldErrors.isEmpty()) e else null
+            is AppError.Validation -> if (e.fields.isEmpty()) e else null
             else -> e
         }
 }

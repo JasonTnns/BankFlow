@@ -1,7 +1,9 @@
 package com.example.bankflow.presentation.auth.login
 
 import com.example.bankflow.domain.common.AppError
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.presentation.common.fieldError
+import com.example.bankflow.presentation.common.fieldText
 import com.example.bankflow.presentation.common.toBanner
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
@@ -13,8 +15,8 @@ data class LoginState(
     val isLoading: Boolean = false,
     val error: AppError? = null,
 ) : UiState {
-    val emailError: String? get() = error.fieldError("email")
-    val passwordError: String? get() = error.fieldError("password")
+    val emailError: UiText? get() = error.fieldText("email")
+    val passwordError: UiText? get() = error.fieldText("password")
     val banner: AppError? get() = error.toBanner()
 }
 

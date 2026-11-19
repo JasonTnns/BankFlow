@@ -1,6 +1,8 @@
 package com.example.bankflow.presentation.profile
 
 import com.example.bankflow.domain.model.ThemePreference
+import com.example.bankflow.presentation.common.descriptionRes
+import com.example.bankflow.presentation.common.labelRes
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
@@ -36,12 +38,10 @@ class ProfileFormatTest {
 
     @Test
     fun `every theme has its own label and description`() {
-        val labels = ThemePreference.entries.map { it.themeLabel() }
-        val descriptions = ThemePreference.entries.map { it.themeDescription() }
+        val labels = ThemePreference.entries.map { it.labelRes() }
+        val descriptions = ThemePreference.entries.map { it.descriptionRes() }
 
         assertEquals(labels.toSet().size, labels.size)
         assertEquals(descriptions.toSet().size, descriptions.size)
-        assertNotEquals("", labels.first())
-        assertEquals("System default", ThemePreference.SYSTEM.themeLabel())
     }
 }

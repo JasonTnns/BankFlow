@@ -1,5 +1,6 @@
 package com.example.bankflow.presentation.common
 
+import com.example.bankflow.R
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.time.Instant
@@ -19,13 +20,13 @@ class DateFormatTest {
 
     @Test
     fun `same day is Today and the day before is Yesterday`() {
-        assertEquals("Today", Instant.parse("2026-10-29T00:01:00Z").dayLabel(now, utc, Locale.US))
-        assertEquals("Yesterday", Instant.parse("2026-10-28T23:59:00Z").dayLabel(now, utc, Locale.US))
+        assertEquals(UiText.Res(R.string.date_today), Instant.parse("2026-10-29T00:01:00Z").dayLabel(now, utc, Locale.US))
+        assertEquals(UiText.Res(R.string.date_yesterday), Instant.parse("2026-10-28T23:59:00Z").dayLabel(now, utc, Locale.US))
     }
 
     @Test
     fun `older days show the date`() {
-        assertEquals("Oct 27, 2026", Instant.parse("2026-10-27T12:00:00Z").dayLabel(now, utc, Locale.US))
+        assertEquals(UiText.Plain("Oct 27, 2026"), Instant.parse("2026-10-27T12:00:00Z").dayLabel(now, utc, Locale.US))
     }
 
     @Test
@@ -34,8 +35,8 @@ class DateFormatTest {
         val nowInTokyo = Instant.parse("2026-10-29T01:00:00Z")
         val lateOct28Utc = Instant.parse("2026-10-28T20:00:00Z")
 
-        assertEquals("Today", lateOct28Utc.dayLabel(nowInTokyo, tokyo, Locale.US))
-        assertEquals("Yesterday", lateOct28Utc.dayLabel(nowInTokyo, utc, Locale.US))
+        assertEquals(UiText.Res(R.string.date_today), lateOct28Utc.dayLabel(nowInTokyo, tokyo, Locale.US))
+        assertEquals(UiText.Res(R.string.date_yesterday), lateOct28Utc.dayLabel(nowInTokyo, utc, Locale.US))
     }
 
     @Test

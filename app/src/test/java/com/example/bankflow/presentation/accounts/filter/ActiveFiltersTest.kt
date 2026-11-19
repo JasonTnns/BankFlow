@@ -1,8 +1,11 @@
 package com.example.bankflow.presentation.accounts.filter
 
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.Direction
+import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.model.TransactionFilter
+import com.example.bankflow.presentation.common.UiText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -29,7 +32,10 @@ class ActiveFiltersTest {
         val chips = TransactionFilter(direction = Direction.IN, category = Category.FOOD).chips()
 
         assertEquals(
-            listOf(ActiveFilterChip(FilterKind.DIRECTION, "Money in"), ActiveFilterChip(FilterKind.CATEGORY, "Food")),
+            listOf(
+                ActiveFilterChip(FilterKind.DIRECTION, UiText.Res(R.string.direction_in)),
+                ActiveFilterChip(FilterKind.CATEGORY, UiText.Res(R.string.category_food)),
+            ),
             chips,
         )
     }
@@ -37,11 +43,11 @@ class ActiveFiltersTest {
     @Test
     fun `amount chip reads naturally for a range, a minimum and a maximum`() {
         assertEquals(
-            listOf("$25.00 \u2013 $100.00"),
+            listOf(UiText.Res(R.string.amount_range_between, listOf(Money(2_500), Money(10_000)))),
             TransactionFilter(minAmountMinor = 2_500, maxAmountMinor = 10_000).labels(),
         )
-        assertEquals(listOf("At least $25.00"), TransactionFilter(minAmountMinor = 2_500).labels())
-        assertEquals(listOf("Up to $100.00"), TransactionFilter(maxAmountMinor = 10_000).labels())
+        assertEquals(listOf(UiText.Res(R.string.amount_range_min, listOf(Money(2_500)))), TransactionFilter(minAmountMinor = 2_500).labels())
+        assertEquals(listOf(UiText.Res(R.string.amount_range_max, listOf(Money(10_000)))), TransactionFilter(maxAmountMinor = 10_000).labels())
     }
 
     @Test
@@ -50,10 +56,13 @@ class ActiveFiltersTest {
         val oct29End = Instant.parse("2026-10-29T23:59:59.999Z")
         val oct29 = Instant.parse("2026-10-29T00:00:00Z")
 
-        assertEquals(listOf("Oct 1, 2026 \u2013 Oct 29, 2026"), TransactionFilter(from = oct1, to = oct29End).labels())
-        assertEquals(listOf("Oct 29, 2026"), TransactionFilter(from = oct29, to = oct29End).labels())
-        assertEquals(listOf("From Oct 1, 2026"), TransactionFilter(from = oct1).labels())
-        assertEquals(listOf("Until Oct 29, 2026"), TransactionFilter(to = oct29End).labels())
+        assertEquals(
+            listOf(UiText.Res(R.string.date_range_between, listOf("Oct 1, 2026", "Oct 29, 2026"))),
+            TransactionFilter(from = oct1, to = oct29End).labels(),
+        )
+        assertEquals(listOf(UiText.Plain("Oct 29, 2026")), TransactionFilter(from = oct29, to = oct29End).labels())
+        assertEquals(listOf(UiText.Res(R.string.date_range_from, listOf("Oct 1, 2026"))), TransactionFilter(from = oct1).labels())
+        assertEquals(listOf(UiText.Res(R.string.date_range_until, listOf("Oct 29, 2026"))), TransactionFilter(to = oct29End).labels())
     }
 
     @Test

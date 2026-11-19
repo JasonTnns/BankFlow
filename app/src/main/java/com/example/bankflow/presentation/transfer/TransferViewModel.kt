@@ -5,6 +5,7 @@ import com.example.bankflow.domain.usecase.GetBeneficiariesUseCase
 import androidx.lifecycle.viewModelScope
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.common.IdGenerator
 import com.example.bankflow.domain.common.isOutcomeUnknown
 import com.example.bankflow.domain.model.Account
@@ -189,13 +190,10 @@ class TransferViewModel(
 
     private suspend fun buildReview(s: TransferState, sourceId: String): AppResult<TransferReview> {
         val cached = s.accounts.firstOrNull { it.id == sourceId }
-            ?: return AppResult.Failure(AppError.Validation(message = "Choose an account to send from"))
+            ?: return AppResult.Failure(AppError.Validation())
 
         val amount = Money.parse(s.amountText, cached.balance.currency)
-            ?: return failure(
-                "amount",
-                if (s.amountText.isBlank()) "Enter an amount" else "Enter an amount like 25 or 25.50",
-            )
+            ?: return failure("destination", FieldIssue.DestinationRequired)
 
         val destination = when (s.destinationMode) {
             DestinationMode.OWN_ACCOUNT -> TransferDestination.OwnAccount(s.ownDestinationId.orEmpty())
@@ -235,7 +233,7 @@ class TransferViewModel(
             }
             is TransferDestination.AccountNumber -> when (val lookup = lookupRecipient(target.number)) {
                 is AppResult.Failure ->
-                    if (lookup.error == AppError.NotFound) failure("destination", "No account found with that number") else lookup
+                    if (lookup.error == AppError.NotFound) failure("destination", FieldIssue.DestinationNotFound) else lookup
                 is AppResult.Success -> {
                     val recipient = lookup.value
                     when {
@@ -257,9 +255,8 @@ class TransferViewModel(
     }
 
     private fun AppError.forForm(source: Account): AppError = when (this) {
-        AppError.SameAccount -> validation("destination", "Choose a different account to send to")
-        AppError.InsufficientFunds ->
-            validation("amount", "You don't have enough funds. Available: ${source.balance.format()}")
+        AppError.SameAccount -> validation("destination", FieldIssue.DestinationIsSource)
+        AppError.InsufficientFunds -> validation("amount", FieldIssue.InsufficientFunds(source.balance))
         else -> this
     }
 
@@ -299,10 +296,10 @@ class TransferViewModel(
     }
 
 
-    private fun validation(field: String, message: String) =
-        AppError.Validation(fieldErrors = mapOf(field to listOf(message)))
+    private fun validation(field: String, issue: FieldIssue) =
+        AppError.Validation(issues = mapOf(field to listOf(issue)))
 
-    private fun failure(field: String, message: String) = AppResult.Failure(validation(field, message))
+    private fun failure(field: String, issue: FieldIssue) = AppResult.Failure(validation(field, issue))
 
     private fun sanitizeAmount(text: String): String {
         val cleaned = text.replace(',', '.').filter { it.isDigit() || it == '.' }

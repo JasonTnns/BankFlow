@@ -15,8 +15,8 @@ fun lastUpdatedText(
     val age = Duration.between(savedAt, now)
     return when {
         age < Duration.ofMinutes(1) -> UiText.Res(R.string.saved_data_just_now)
-        age < Duration.ofHours(1) -> UiText.Res(R.string.saved_data_minutes, listOf(age.toMinutes()))
-        age < Duration.ofHours(24) -> UiText.Res(R.string.saved_data_hours, listOf(age.toHours()))
+        age < Duration.ofHours(1) -> UiText.Plural(R.plurals.saved_data_minutes, age.toMinutes().toInt())
+        age < Duration.ofHours(24) -> UiText.Plural(R.plurals.saved_data_hours, age.toHours().toInt())
         else -> UiText.Res(R.string.saved_data_date, listOf(savedAt.formatDate(zone, locale)))
     }
 }

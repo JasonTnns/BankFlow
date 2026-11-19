@@ -1,6 +1,8 @@
 package com.example.bankflow.presentation.common
 
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Direction
+import com.example.bankflow.domain.model.Money
 import com.example.bankflow.testutil.testTransaction
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -12,6 +14,7 @@ class TransactionUiTest {
 
     private val utc = ZoneId.of("UTC")
     private val now = Instant.parse("2026-10-29T12:00:00Z")
+    private val today = UiText.Res(R.string.date_today)
 
     @Test
     fun `incoming and outgoing amounts carry a sign`() {
@@ -22,11 +25,12 @@ class TransactionUiTest {
     @Test
     fun `subtitle prefers the description and falls back to the category`() {
         assertEquals(
-            "Welcome bonus \u00B7 Today",
-            testTransaction("a", description = "Welcome bonus").subtitle(now, utc, Locale.US),
+            UiText.Res(R.string.pair_dot, listOf(UiText.Plain("Welcome bonus"), today)),
+            testTransaction("a", description = "Welcome bonus").subtitleText(now, utc, Locale.US),
         )
-        assertEquals("Food \u00B7 Today", testTransaction("b").subtitle(now, utc, Locale.US))
-        assertEquals("Food \u00B7 Today", testTransaction("c", description = "   ").subtitle(now, utc, Locale.US))
+        val categoryFallback = UiText.Res(R.string.pair_dot, listOf(UiText.Res(R.string.category_food), today))
+        assertEquals(categoryFallback, testTransaction("b").subtitleText(now, utc, Locale.US))
+        assertEquals(categoryFallback, testTransaction("c", description = "   ").subtitleText(now, utc, Locale.US))
     }
 
     @Test
@@ -35,12 +39,12 @@ class TransactionUiTest {
         val sent = testTransaction("b", Direction.OUT, 2_500)
 
         assertEquals(
-            "Received $1,000.00 from Fresh Market, Welcome bonus, Today",
-            received.spokenDescription(now, utc, Locale.US),
+            UiText.Res(R.string.transaction_spoken_in, listOf(Money(100_000), "Fresh Market", UiText.Plain("Welcome bonus"), today)),
+            received.spokenText(now, utc, Locale.US),
         )
         assertEquals(
-            "Sent $25.00 to Fresh Market, Food, Today",
-            sent.spokenDescription(now, utc, Locale.US),
+            UiText.Res(R.string.transaction_spoken_out, listOf(Money(2_500), "Fresh Market", UiText.Res(R.string.category_food), today)),
+            sent.spokenText(now, utc, Locale.US),
         )
     }
 }

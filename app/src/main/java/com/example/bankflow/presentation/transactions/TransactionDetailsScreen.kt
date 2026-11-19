@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -44,12 +45,14 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.Transaction
 import com.example.bankflow.presentation.common.format
 import com.example.bankflow.presentation.common.formatDateTime
 import com.example.bankflow.presentation.common.label
 import com.example.bankflow.presentation.common.signedAmount
+import com.example.bankflow.presentation.common.uiString
 import com.example.bankflow.presentation.components.ErrorState
 import com.example.bankflow.presentation.components.categoryIcon
 import org.koin.androidx.compose.koinViewModel
@@ -77,10 +80,10 @@ fun TransactionDetailsContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Transaction") },
+                title = { Text(stringResource(R.string.details_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back))
                     }
                 },
             )
@@ -94,7 +97,7 @@ fun TransactionDetailsContent(
                 state.isLoading -> CircularProgressIndicator(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .semantics { contentDescription = "Loading transaction" },
+                        .semantics { contentDescription = loadingText},
                 )
                 error != null -> ErrorState(
                     error = error,
@@ -155,15 +158,15 @@ private fun DetailsBody(transaction: Transaction) {
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column {
-                DetailRow(if (isIncoming) "From" else "To", transaction.counterparty.name)
+                DetailRow(stringResource(if (isIncoming) R.string.transfer_from else R.string.transfer_to), transaction.counterparty.name)
                 transaction.counterparty.accountNumberMasked?.let {
-                    DetailRow("Account", if (transaction.counterparty.isOwnAccount) "$it (your account)" else it)
+                    DetailRow(stringResource(R.string.details_account), if (transaction.counterparty.isOwnAccount) uiString(R.string.details_your_account, it) else it)
                 }
-                DetailRow("Date", transaction.createdAt.formatDateTime())
-                DetailRow("Category", transaction.category.label())
-                transaction.description?.takeIf { it.isNotBlank() }?.let { DetailRow("Description", it) }
-                DetailRow("Type", transaction.kind.label())
-                DetailRow("Balance after", transaction.balanceAfter.format())
+                DetailRow(stringResource(R.string.details_date), transaction.createdAt.formatDateTime())
+                DetailRow(stringResource(R.string.details_category), transaction.category.label())
+                transaction.description?.takeIf { it.isNotBlank() }?.let { DetailRow(stringResource(R.string.details_description), it) }
+                DetailRow(stringResource(R.string.details_type), transaction.kind.label())
+                DetailRow(stringResource(R.string.details_balance_after), transaction.balanceAfter.format())
                 ReferenceRow(transaction.transferId)
             }
         }
@@ -199,7 +202,7 @@ private fun ReferenceRow(reference: String) {
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text("Reference", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.details_reference), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(
                     text = reference,
                     style = MaterialTheme.typography.bodySmall,
@@ -213,7 +216,7 @@ private fun ReferenceRow(reference: String) {
                     copied = true
                 },
                 modifier = Modifier.testTag("details_copy"),
-            ) { Text(if (copied) "Copied" else "Copy") }
+            ) { Text(stringResource(if (copied) R.string.action_copied else R.string.action_copy)) }
         }
     }
 }

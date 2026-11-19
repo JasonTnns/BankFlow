@@ -11,6 +11,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.bankflow.presentation.accounts.HistoryFilterBar
 import com.example.bankflow.presentation.accounts.filter.ActiveFilterChip
 import com.example.bankflow.presentation.accounts.filter.FilterKind
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.ui.theme.BankFlowTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -44,8 +45,8 @@ class HistoryFilterBarTest {
     }
 
     private val sampleChips = listOf(
-        ActiveFilterChip(FilterKind.DIRECTION, "Money out"),
-        ActiveFilterChip(FilterKind.CATEGORY, "Food"),
+        ActiveFilterChip(FilterKind.DIRECTION, UiText.Plain("Money out")),
+        ActiveFilterChip(FilterKind.CATEGORY, UiText.Plain("Food")),
     )
 
     @Test

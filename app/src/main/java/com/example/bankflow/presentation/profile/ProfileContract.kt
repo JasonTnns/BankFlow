@@ -3,7 +3,9 @@ package com.example.bankflow.presentation.profile
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.model.Profile
 import com.example.bankflow.domain.model.ThemePreference
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.presentation.common.fieldError
+import com.example.bankflow.presentation.common.fieldText
 import com.example.bankflow.presentation.common.toBanner
 import com.example.bankflow.presentation.mvi.UiIntent
 import com.example.bankflow.presentation.mvi.UiState
@@ -13,8 +15,7 @@ data class NameEdit(
     val isSaving: Boolean = false,
     val error: AppError? = null,
 ) {
-    val fieldError: String? get() = error.fieldError("fullName")
-
+    val fieldError: UiText? get() = error.fieldText("fullName")
     val banner: AppError? get() = error.toBanner()
 }
 

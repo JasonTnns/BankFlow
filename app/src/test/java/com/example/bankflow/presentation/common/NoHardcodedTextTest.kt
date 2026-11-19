@@ -6,37 +6,46 @@ import java.io.File
 
 class NoHardcodedTextTest {
 
-    private val sourceRoot = File("src/main/java/com/example/bankflow")
+    private val root = File("src/main/java/com/example/bankflow")
 
-    private val migrated = listOf(
-        "presentation/common/ErrorMessages.kt",
-        "presentation/transfer/TransferMessages.kt",
-        "presentation/components/Components.kt",
-        "presentation/security/LockScreen.kt",
-        "presentation/security/SecuritySection.kt",
-        "presentation/navigation/AppNavHost.kt",
-        "presentation/BankFlowRoot.kt",
-    )
+    private val englishWord = Regex("\"[A-Z][a-z][^\"]*\"")
 
-    private val textLiteral = Regex("\\bText\\(\\s*(?:text\\s*=\\s*)?\"")
-    private val describedLiteral = Regex("contentDescription\\s*=\\s*\"")
-    private val returnedSentence = Regex("->\\s*\"")
+    private val sentenceTemplate = Regex("\"[^\"]*\\$[^\"]*\\s[^\"]*\"")
+
+    private fun offences(folder: String, ignoredLines: List<String> = emptyList()): List<String> {
+        val dir = File(root, folder)
+        assertTrue("$folder was not found (is the test running from the app/ folder?)", dir.exists())
+
+        return dir.walkTopDown().filter { it.isFile && it.extension == "kt" }.flatMap { file ->
+            file.readLines().mapIndexedNotNull { index, raw ->
+                val line = raw.trim()
+                val skipped = line.startsWith("*") || line.startsWith("/*") || line.startsWith("//") ||
+                        line.startsWith("import ") || line.startsWith("package ")
+                if (skipped) return@mapIndexedNotNull null
+
+                val code = line.substringBefore("//")
+                if (ignoredLines.any { code.contains(it) }) return@mapIndexedNotNull null
+
+                if (englishWord.containsMatchIn(code) || sentenceTemplate.containsMatchIn(code)) {
+                    "${file.relativeTo(root)}:${index + 1}: $line"
+                } else {
+                    null
+                }
+            }
+        }.toList()
+    }
 
     @Test
-    fun `migrated files read their text from resources`() {
-        val offences = migrated.flatMap { path ->
-            val file = File(sourceRoot, path)
-            assertTrue("$path was not found (is the test running from the app/ folder?)", file.exists())
-            val checks = buildList {
-                add(textLiteral)
-                add(describedLiteral)
-                if (path.endsWith("Messages.kt")) add(returnedSentence)
-            }
-            file.readLines().mapIndexedNotNull { index, line ->
-                if (checks.any { it.containsMatchIn(line) }) "$path:${index + 1}: ${line.trim()}" else null
-            }
-        }
+    fun `screens and view models read their text from resources`() {
+        val found = offences("presentation")
 
-        assertTrue("Hard-coded text found:\n" + offences.joinToString("\n"), offences.isEmpty())
+        assertTrue("Hard-coded text found:\n" + found.joinToString("\n"), found.isEmpty())
+    }
+
+    @Test
+    fun `the domain layer carries codes, never sentences for the user`() {
+        val found = offences("domain", ignoredLines = listOf("require(", "check(", "error(", "throw "))
+
+        assertTrue("User-facing text found in the domain layer:\n" + found.joinToString("\n"), found.isEmpty())
     }
 }

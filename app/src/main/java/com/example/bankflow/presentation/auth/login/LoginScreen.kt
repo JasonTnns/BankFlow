@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
@@ -28,10 +29,12 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.bankflow.R
 import com.example.bankflow.presentation.auth.AuthTextField
 import com.example.bankflow.presentation.auth.ErrorBanner
 import com.example.bankflow.presentation.auth.LoadingButton
 import com.example.bankflow.presentation.auth.PasswordField
+import com.example.bankflow.presentation.common.resolve
 import com.example.bankflow.presentation.common.userMessage
 import org.koin.androidx.compose.koinViewModel
 
@@ -64,13 +67,13 @@ fun LoginContent(
         ) {
             Spacer(Modifier.height(32.dp))
             Text(
-                text = "BankFlow",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.semantics { heading() },
             )
             Text(
-                text = "Sign in to your accounts",
+                text = stringResource(R.string.login_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -81,10 +84,10 @@ fun LoginContent(
             AuthTextField(
                 value = state.email,
                 onValueChange = { onIntent(LoginIntent.EmailChanged(it)) },
-                label = "Email",
+                label = stringResource(R.string.auth_email),
                 modifier = Modifier.testTag("login_email"),
                 enabled = !state.isLoading,
-                errorText = state.emailError,
+                errorText = state.emailError?.resolve(),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     capitalization = KeyboardCapitalization.None,
@@ -104,18 +107,18 @@ fun LoginContent(
                 }),
                 modifier = Modifier.testTag("login_password"),
                 enabled = !state.isLoading,
-                errorText = state.passwordError,
-            )
+                errorText = state.passwordError?.resolve(),
+                )
 
             LoadingButton(
-                text = "Sign in",
+                text = stringResource(R.string.login_action_sign_in),
                 loading = state.isLoading,
                 onClick = { onIntent(LoginIntent.Submit) },
                 modifier = Modifier.testTag("login_submit"),
             )
 
             TextButton(onClick = onNavigateToRegister, enabled = !state.isLoading) {
-                Text("New here? Create an account")
+                Text(stringResource(R.string.login_action_create_account))
             }
         }
     }

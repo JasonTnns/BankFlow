@@ -1,16 +1,44 @@
 <resources>
     <string name="app_name">BankFlow</string>
 
+    <!-- Actions -->
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_saving">Saving…</string>
+    <string name="action_done">Done</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_ok">OK</string>
+    <string name="action_close">Close</string>
+    <string name="action_add">Add</string>
+    <string name="action_manage">Manage</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_copied">Copied</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_clear_all">Clear all</string>
+    <string name="action_reset">Reset</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_log_out">Log out</string>
+    <string name="loading">Loading</string>
+    <string name="pair_dot">%1$s · %2$s</string>
+
+    <!-- Dates and ranges -->
+    <string name="date_today">Today</string>
+    <string name="date_yesterday">Yesterday</string>
+    <string name="date_range_from">From %1$s</string>
+    <string name="date_range_until">Until %1$s</string>
+    <string name="date_range_between">%1$s – %2$s</string>
+    <string name="amount_range_min">At least %1$s</string>
+    <string name="amount_range_max">Up to %1$s</string>
+    <string name="amount_range_between">%1$s – %2$s</string>
+
     <!-- Navigation -->
     <string name="tab_home">Home</string>
     <string name="tab_transfer">Transfer</string>
     <string name="tab_insights">Insights</string>
     <string name="tab_profile">Profile</string>
-
-    <!-- Common -->
-    <string name="action_try_again">Try again</string>
-    <string name="action_retry">Retry</string>
-    <string name="loading">Loading</string>
 
     <!-- Errors -->
     <string name="error_no_connection">No internet connection. Check your network and try again.</string>
@@ -32,6 +60,30 @@
     <string name="error_beneficiary_exists">This recipient is already saved.</string>
     <string name="error_unknown">Something unexpected happened. Please try again.</string>
 
+    <!-- Field problems -->
+    <string name="issue_email_required">Email is required</string>
+    <string name="issue_email_invalid">Enter a valid email address</string>
+    <string name="issue_password_required">Password is required</string>
+    <string name="issue_password_too_short">Password must be at least %1$d characters</string>
+    <string name="issue_password_needs_letter_number">Password must contain a letter and a number</string>
+    <string name="issue_password_too_long">Password is too long</string>
+    <string name="issue_name_required">Full name is required</string>
+    <string name="issue_name_too_long">Full name is too long (max %1$d characters)</string>
+    <string name="issue_amount_required">Enter an amount</string>
+    <string name="issue_amount_invalid">Enter an amount like 25 or 25.50</string>
+    <string name="issue_amount_not_positive">Enter an amount greater than zero</string>
+    <string name="issue_amount_too_large">Amount is above the maximum for one transfer</string>
+    <string name="issue_amount_max_below_min">Maximum must be at least the minimum</string>
+    <string name="issue_insufficient_funds">You don\'t have enough funds. Available: %1$s</string>
+    <string name="issue_account_number_invalid">Account number must be 12 digits</string>
+    <string name="issue_destination_required">Choose a destination account</string>
+    <string name="issue_destination_not_found">No account found with that number</string>
+    <string name="issue_destination_is_source">Choose a different account to send to</string>
+    <string name="issue_description_too_long">Description is too long (max %1$d characters)</string>
+    <string name="issue_nickname_required">Give this recipient a name</string>
+    <string name="issue_nickname_too_long">Name is too long (max %1$d characters)</string>
+    <string name="issue_invalid">This value isn\'t valid</string>
+
     <!-- Transfer outcome messages -->
     <string name="transfer_failure_validation">Some details of this transfer weren\'t accepted. Please check them and try again.</string>
     <string name="unknown_outcome_lost_connection">We lost the connection while sending your transfer.</string>
@@ -41,9 +93,15 @@
 
     <!-- Saved (cached) data -->
     <string name="saved_data_just_now">Showing saved data from just now</string>
-    <string name="saved_data_minutes">Showing saved data from %1$d min ago</string>
-    <string name="saved_data_hours">Showing saved data from %1$d h ago</string>
     <string name="saved_data_date">Showing saved data from %1$s</string>
+    <plurals name="saved_data_minutes">
+        <item quantity="one">Showing saved data from %1$d min ago</item>
+        <item quantity="other">Showing saved data from %1$d min ago</item>
+    </plurals>
+    <plurals name="saved_data_hours">
+        <item quantity="one">Showing saved data from %1$d h ago</item>
+        <item quantity="other">Showing saved data from %1$d h ago</item>
+    </plurals>
 
     <!-- App lock -->
     <string name="lock_title">BankFlow is locked</string>
@@ -59,9 +117,197 @@
     <!-- Security settings -->
     <string name="security_title">Security</string>
     <string name="security_unlock_title">Unlock with biometrics or device PIN</string>
-    <string name="security_unlock_available">Ask for your fingerprint, face or device PIN when you open the app or come back to it, and keep your saved sign-in locked until you do.</string>    <string name="security_unlock_none_enrolled">Set up a screen lock or fingerprint in your phone\'s settings to use this.</string>
+    <string name="security_unlock_available">Ask for your fingerprint, face or device PIN when you open the app or come back to it, and keep your saved sign-in locked until you do.</string>
+    <string name="security_unlock_none_enrolled">Set up a screen lock or fingerprint in your phone\'s settings to use this.</string>
     <string name="security_unlock_no_hardware">This device can\'t verify your identity, so app unlock isn\'t available.</string>
     <string name="security_unlock_unavailable">App unlock isn\'t available right now.</string>
     <string name="security_prompt_enable">Turn on app unlock</string>
     <string name="security_prompt_disable">Turn off app unlock</string>
+
+    <!-- Sign in and registration -->
+    <string name="auth_email">Email</string>
+    <string name="auth_password">Password</string>
+    <string name="auth_show_password">Show password</string>
+    <string name="auth_hide_password">Hide password</string>
+    <string name="login_subtitle">Sign in to your accounts</string>
+    <string name="login_action_sign_in">Sign in</string>
+    <string name="login_action_create_account">New here? Create an account</string>
+    <string name="register_title">Create your account</string>
+    <string name="register_subtitle">Your first checking account opens with a demo balance.</string>
+    <string name="register_full_name">Full name</string>
+    <string name="register_password_hint">At least 8 characters, with a letter and a number</string>
+    <string name="register_action_create">Create account</string>
+    <string name="register_action_sign_in">Already have an account? Sign in</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_greeting">Hi, %1$s</string>
+    <string name="dashboard_greeting_no_name">Hello</string>
+    <string name="dashboard_total_balance">Total balance</string>
+    <string name="dashboard_accounts">Accounts</string>
+    <string name="dashboard_accounts_empty_title">No accounts yet</string>
+    <string name="dashboard_accounts_empty_message">Your accounts will show up here.</string>
+    <string name="dashboard_recent_activity">Recent activity</string>
+    <string name="dashboard_activity_empty_title">No transactions yet</string>
+    <string name="dashboard_activity_empty_message">Your activity will show up here.</string>
+
+    <!-- Shared rows -->
+    <string name="account_card_spoken">%1$s, %2$s account ending %3$s, balance %4$s</string>
+    <string name="transaction_spoken_in">Received %1$s from %2$s, %3$s, %4$s</string>
+    <string name="transaction_spoken_out">Sent %1$s to %2$s, %3$s, %4$s</string>
+
+    <!-- Categories, types and statuses -->
+    <string name="category_food">Food</string>
+    <string name="category_transport">Transport</string>
+    <string name="category_shopping">Shopping</string>
+    <string name="category_bills">Bills</string>
+    <string name="category_entertainment">Entertainment</string>
+    <string name="category_health">Health</string>
+    <string name="category_income">Income</string>
+    <string name="category_transfer">Transfer</string>
+    <string name="category_other">Other</string>
+    <string name="account_type_checking">Checking</string>
+    <string name="account_type_savings">Savings</string>
+    <string name="direction_in">Money in</string>
+    <string name="direction_out">Money out</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_reversed">Reversed</string>
+    <string name="kind_transfer">Transfer</string>
+    <string name="kind_deposit">Deposit</string>
+    <string name="theme_system">System default</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_system_description">Matches your phone\'s setting</string>
+    <string name="theme_light_description">Always light</string>
+    <string name="theme_dark_description">Always dark</string>
+
+    <!-- Account history and filters -->
+    <string name="account_title_fallback">Account</string>
+    <string name="history_transactions">Transactions</string>
+    <string name="history_empty_filtered_title">No matching transactions</string>
+    <string name="history_empty_filtered_message">Try different filters or a different search.</string>
+    <string name="history_clear_filters">Clear filters</string>
+    <string name="history_empty_title">No transactions yet</string>
+    <string name="history_empty_message">Activity on this account will show up here.</string>
+    <string name="history_loading_more">Loading more transactions</string>
+    <string name="history_end">You\'re all caught up</string>
+    <string name="history_search_placeholder">Search transactions</string>
+    <string name="history_clear_search">Clear search</string>
+    <string name="history_filters">Filters</string>
+    <string name="history_filters_active">Filters, %1$d active</string>
+    <string name="history_remove_filter">Remove filter: %1$s</string>
+    <string name="filter_title">Filters</string>
+    <string name="filter_type">Type</string>
+    <string name="filter_any_type">Any type</string>
+    <string name="filter_category">Category</string>
+    <string name="filter_all_categories">All categories</string>
+    <string name="filter_date_range">Date range</string>
+    <string name="filter_any_date">Any date</string>
+    <string name="filter_clear_dates">Clear date range</string>
+    <string name="filter_amount">Amount</string>
+    <string name="filter_min">Minimum</string>
+    <string name="filter_max">Maximum</string>
+    <string name="filter_apply">Show results</string>
+
+    <!-- Transaction details -->
+    <string name="details_title">Transaction</string>
+    <string name="details_loading">Loading transaction</string>
+    <string name="details_account">Account</string>
+    <string name="details_your_account">%1$s (your account)</string>
+    <string name="details_date">Date</string>
+    <string name="details_category">Category</string>
+    <string name="details_description">Description</string>
+    <string name="details_type">Type</string>
+    <string name="details_balance_after">Balance after</string>
+    <string name="details_reference">Reference</string>
+
+    <!-- Transfer flow -->
+    <string name="transfer_title">Send money</string>
+    <string name="transfer_review_title">Review transfer</string>
+    <string name="transfer_loading_accounts">Loading accounts</string>
+    <string name="transfer_no_accounts_title">No accounts yet</string>
+    <string name="transfer_no_accounts_message">You need an account before you can send money.</string>
+    <string name="transfer_from">From</string>
+    <string name="transfer_to">To</string>
+    <string name="transfer_mode_other">Someone else</string>
+    <string name="transfer_mode_own">My accounts</string>
+    <string name="transfer_account_number">Account number</string>
+    <string name="transfer_account_number_hint">12 digits. You\'ll see the owner\'s name before sending.</string>
+    <string name="transfer_no_own_accounts">You need another active account to move money between your own accounts.</string>
+    <string name="transfer_amount">Amount</string>
+    <string name="transfer_available">Available: %1$s</string>
+    <string name="transfer_category">Category</string>
+    <string name="transfer_note">Note (optional)</string>
+    <string name="review_sending">You\'re sending</string>
+    <string name="review_to">to %1$s</string>
+    <string name="review_note">Note</string>
+    <string name="review_fee">Fee</string>
+    <string name="review_fee_none">None</string>
+    <string name="review_confirm">Confirm and send</string>
+    <string name="review_edit">Edit transfer</string>
+    <string name="success_title">Transfer sent</string>
+    <string name="success_new_balance">New balance</string>
+    <string name="success_another">Make another transfer</string>
+    <string name="failure_title">Transfer not sent</string>
+    <string name="failure_no_money">No money was moved.</string>
+
+    <!-- Saved recipients -->
+    <string name="recipients_title">Saved recipients</string>
+    <string name="recipients_hint_empty">People you save will appear here for one-tap transfers.</string>
+    <string name="recipients_saved_confirmation">%1$s is saved to your recipients</string>
+    <string name="recipients_save_prompt">Save %1$s as a recipient</string>
+    <string name="recipients_add">Add recipient</string>
+    <string name="recipients_loading">Loading recipients</string>
+    <string name="recipients_empty_title">No saved recipients</string>
+    <string name="recipients_empty_message">Save the people you pay often, and send them money in one tap.</string>
+    <string name="recipients_row_unavailable">%1$s · %2$s · Unavailable</string>
+    <string name="recipients_delete_description">Delete %1$s</string>
+    <string name="recipients_name_label">Name, e.g. Mum</string>
+    <string name="recipients_number_hint">12 digits</string>
+    <string name="recipients_delete_title">Delete recipient?</string>
+    <string name="recipients_delete_message">%1$s (%2$s) will be removed from your saved recipients. You can add them again later.</string>
+
+    <!-- Insights -->
+    <string name="insights_title">Insights</string>
+    <string name="insights_previous_month">Previous month</string>
+    <string name="insights_next_month">Next month</string>
+    <string name="insights_spent">Spent</string>
+    <string name="insights_income">Income</string>
+    <string name="insights_net">Net</string>
+    <string name="insights_total_spoken">%1$s, %2$s</string>
+    <string name="insights_categories_title">Spending by category</string>
+    <string name="insights_no_spending">You didn\'t spend anything this month.</string>
+    <string name="insights_empty_title">No activity in %1$s</string>
+    <string name="insights_empty_message">Money you send and receive this month will show up here.</string>
+    <string name="insights_loading">Loading insights</string>
+    <string name="insights_share">%1$s of spending</string>
+    <string name="insights_category_spoken">%1$s, %2$s, %3$s of spending, %4$s</string>
+    <string name="insights_comparison_more">%1$d%% more than %2$s</string>
+    <string name="insights_comparison_less">%1$d%% less than %2$s</string>
+    <string name="insights_comparison_same">Same as %1$s</string>
+    <string name="share_percent">%1$d%%</string>
+    <string name="share_less_than_one" formatted="false">&lt;1%</string>
+    <plurals name="insights_transactions">
+        <item quantity="one">%1$d transaction</item>
+        <item quantity="other">%1$d transactions</item>
+    </plurals>
+
+    <!-- Profile -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_loading">Loading profile</string>
+    <string name="profile_section_account">Account</string>
+    <string name="profile_name">Name</string>
+    <string name="profile_member_since">Member since</string>
+    <string name="profile_daily_limit">Daily transfer limit</string>
+    <string name="profile_read_only_note">Your email and transfer limit can\'t be changed here.</string>
+    <string name="profile_section_appearance">Appearance</string>
+    <string name="profile_section_payments">Payments</string>
+    <string name="profile_recipients_support">The people you send money to</string>
+    <string name="profile_section_about">About</string>
+    <string name="profile_version">Version</string>
+    <string name="profile_demo_note">BankFlow is a demo app. No real money is involved.</string>
+    <string name="profile_logout_title">Log out?</string>
+    <string name="profile_logout_message">You\'ll need to sign in again to see your accounts.</string>
+    <string name="profile_name_dialog_title">Edit name</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.example.bankflow.presentation.common
 
+import com.example.bankflow.R
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -15,13 +16,13 @@ fun Instant.dayLabel(
     now: Instant = Instant.now(),
     zone: ZoneId = ZoneId.systemDefault(),
     locale: Locale = Locale.getDefault(),
-): String {
+): UiText {
     val day = atZone(zone).toLocalDate()
     val today = now.atZone(zone).toLocalDate()
     return when (day) {
-        today -> "Today"
-        today.minusDays(1) -> "Yesterday"
-        else -> formatDate(zone, locale)
+        today -> UiText.Res(R.string.date_today)
+        today.minusDays(1) -> UiText.Res(R.string.date_yesterday)
+        else -> UiText.Plain(formatDate(zone, locale))
     }
 }
 

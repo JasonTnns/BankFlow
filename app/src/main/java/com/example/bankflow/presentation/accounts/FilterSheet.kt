@@ -35,11 +35,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.example.bankflow.R
 import com.example.bankflow.domain.model.Category
 import com.example.bankflow.domain.model.Direction
 import com.example.bankflow.domain.model.TransactionFilter
@@ -47,6 +49,9 @@ import com.example.bankflow.presentation.accounts.filter.FilterDraft
 import com.example.bankflow.presentation.accounts.filter.localDateToPickerMillis
 import com.example.bankflow.presentation.accounts.filter.pickerMillisToLocalDate
 import com.example.bankflow.presentation.common.label
+import com.example.bankflow.presentation.common.resolve
+import com.example.bankflow.presentation.common.toText
+import com.example.bankflow.presentation.common.uiString
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -125,17 +130,17 @@ fun FilterSheetContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text("Filters", style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
-            TextButton(onClick = onReset, modifier = Modifier.testTag("filter_reset")) { Text("Reset") }
+            Text(stringResource(R.string.filter_title), style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
+            TextButton(onClick = onReset, modifier = Modifier.testTag("filter_reset")) { Text(stringResource(R.string.filter_title), style = MaterialTheme.typography.titleLarge)}
         }
 
-        SheetSection("Type") {
+        SheetSection(stringResource(R.string.filter_type)) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = draft.direction == null,
                     onClick = { onDraftChange(draft.copy(direction = null)) },
-                    label = { Text("Any type") },
-                )
+                    label = { Text(stringResource(R.string.filter_any_type)) },
+                    )
                 Direction.entries.forEach { direction ->
                     FilterChip(
                         selected = draft.direction == direction,
@@ -146,7 +151,7 @@ fun FilterSheetContent(
             }
         }
 
-        SheetSection("Category") {
+        SheetSection(stringResource(R.string.filter_category)) {
             FlowRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -154,8 +159,8 @@ fun FilterSheetContent(
                 FilterChip(
                     selected = draft.category == null,
                     onClick = { onDraftChange(draft.copy(category = null)) },
-                    label = { Text("All categories") },
-                )
+                    label = { Text(stringResource(R.string.filter_all_categories)) },
+                    )
                 Category.entries.forEach { category ->
                     FilterChip(
                         selected = draft.category == category,
@@ -166,46 +171,46 @@ fun FilterSheetContent(
             }
         }
 
-        SheetSection("Date range") {
+        SheetSection(stringResource(R.string.filter_date_range)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedButton(onClick = onPickDates, modifier = Modifier.testTag("filter_dates")) {
-                    Text(dateRangeText(draft.fromDate, draft.toDate) ?: "Any date")
+                    Text(dateRangeText(draft.fromDate, draft.toDate) ?: stringResource(R.string.filter_any_date))
                 }
                 if (draft.fromDate != null || draft.toDate != null) {
                     IconButton(onClick = { onDraftChange(draft.copy(fromDate = null, toDate = null)) }) {
-                        Icon(Icons.Filled.Close, contentDescription = "Clear date range")
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.filter_clear_dates))
                     }
                 }
             }
         }
 
-        SheetSection("Amount") {
+        SheetSection(stringResource(R.string.filter_amount)) {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = draft.minAmountText,
                     onValueChange = { onDraftChange(draft.copy(minAmountText = it)) },
                     modifier = Modifier.weight(1f).testTag("filter_min"),
-                    label = { Text("Minimum") },
+                    label = { Text(stringResource(R.string.filter_min)) },
                     singleLine = true,
                     isError = errors.minAmount != null,
-                    supportingText = errors.minAmount?.let { { Text(it) } },
+                    supportingText = errors.minAmount?.let { issue -> { Text(issue.toText().resolve()) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Next),
                 )
                 OutlinedTextField(
                     value = draft.maxAmountText,
                     onValueChange = { onDraftChange(draft.copy(maxAmountText = it)) },
                     modifier = Modifier.weight(1f).testTag("filter_max"),
-                    label = { Text("Maximum") },
+                    label = { Text(stringResource(R.string.filter_max)) },
                     singleLine = true,
                     isError = errors.maxAmount != null,
-                    supportingText = errors.maxAmount?.let { { Text(it) } },
+                    supportingText = errors.maxAmount?.let { issue -> { Text(issue.toText().resolve()) } },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done),
                 )
             }
         }
 
         Button(onClick = onApply, modifier = Modifier.fillMaxWidth().testTag("filter_apply")) {
-            Text("Show results")
+            Text(stringResource(R.string.filter_apply))
         }
     }
 }
@@ -223,15 +228,17 @@ private fun SheetSection(title: String, content: @Composable () -> Unit) {
     }
 }
 
+@Composable
 private fun dateRangeText(from: LocalDate?, to: LocalDate?): String? {
     if (from == null && to == null) return null
     val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
     val fromText = from?.format(formatter)
     val toText = to?.format(formatter)
     return when {
-        fromText != null && toText != null -> if (fromText == toText) fromText else "$fromText \u2013 $toText"
-        fromText != null -> "From $fromText"
-        else -> "Until $toText"
+        fromText != null && toText != null ->
+            if (fromText == toText) fromText else uiString(R.string.date_range_between, fromText, toText)
+        fromText != null -> uiString(R.string.date_range_from, fromText)
+        else -> uiString(R.string.date_range_until, toText.orEmpty())
     }
 }
 
@@ -257,9 +264,9 @@ private fun DateRangeDialog(
                     val end = state.selectedEndDateMillis?.let(::pickerMillisToLocalDate) ?: start
                     onConfirm(start, end)
                 },
-            ) { Text("OK") }
+            ) { Text(stringResource(R.string.action_ok)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) } },
     ) {
         DateRangePicker(state = state, modifier = Modifier.weight(1f))
     }
