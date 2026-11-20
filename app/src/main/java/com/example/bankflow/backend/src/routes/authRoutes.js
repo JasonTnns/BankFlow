@@ -14,7 +14,7 @@ const rateLimit = require('express-rate-limit');
 const { z } = require('zod');
 
 const config = require('../config');
-const { Errors } = require('../errors');
+const { Errors, IssueCode } = require('../errors');
 const { validate } = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
 
@@ -31,8 +31,14 @@ const passwordSchema = z
   .string({ required_error: 'Password is required' })
   .min(config.auth.minPasswordLength, `Password must be at least ${config.auth.minPasswordLength} characters`)
   // bcrypt silently ignores everything after 72 BYTES, so reject longer input.
-  .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, 'Password is too long (max 72 bytes)')
-  .refine((value) => /[A-Za-z]/.test(value) && /\d/.test(value), 'Password must contain a letter and a number');
+  .refine((value) => Buffer.byteLength(value, 'utf8') <= 72, {
+      message: 'Password is too long (max 72 bytes)',
+      params: { code: IssueCode.PASSWORD_TOO_LONG },
+    })
+    .refine((value) => /[A-Za-z]/.test(value) && /\d/.test(value), {
+      message: 'Password must contain a letter and a number',
+      params: { code: IssueCode.PASSWORD_NEEDS_LETTER_AND_NUMBER },
+    });
 
 const deviceNameSchema = z.string().trim().max(100).optional();
 

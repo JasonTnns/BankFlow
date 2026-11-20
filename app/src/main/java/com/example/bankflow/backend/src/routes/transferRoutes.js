@@ -23,7 +23,7 @@ const express = require('express');
 const { z } = require('zod');
 
 const { CATEGORIES } = require('../constants');
-const { Errors } = require('../errors');
+const { Errors, IssueCode, validationDetails } = require('../errors');
 const { MAX_TRANSFER_MINOR } = require('../utils/money');
 const { validate } = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
@@ -57,23 +57,26 @@ const transferSchema = z
       .optional()
       .transform((value) => value || undefined),
   })
-  .refine((body) => Boolean(body.destinationAccountId) !== Boolean(body.destinationAccountNumber), {
-    message: 'Provide exactly one of destinationAccountId or destinationAccountNumber',
-    path: ['destinationAccountId'],
-  });
+    .refine((body) => Boolean(body.destinationAccountId) !== Boolean(body.destinationAccountNumber), {
+      message: 'Provide exactly one of destinationAccountId or destinationAccountNumber',
+      path: ['destinationAccountId'],
+      params: { code: IssueCode.DESTINATION_CONFLICT },
+    });
 
 // ------------------------------------------------------------------ middleware
 
 /** Reads and validates the Idempotency-Key header into req.idempotencyKey. */
 function requireIdempotencyKey(req, _res, next) {
   const parsed = idempotencyKeySchema.safeParse(req.get('Idempotency-Key'));
-  if (!parsed.success) {
-    return next(
-      Errors.validation('A valid Idempotency-Key header is required', {
-        fields: { 'Idempotency-Key': [parsed.error.issues[0].message] },
-      })
-    );
-  }
+    if (!parsed.success) {
+      const message = parsed.error.issues[0].message;
+      return next(
+        Errors.validation(
+          'A valid Idempotency-Key header is required',
+          validationDetails([{ field: 'Idempotency-Key', code: IssueCode.INVALID_UUID, message }])
+        )
+      );
+    }
   req.idempotencyKey = parsed.data;
   next();
 }

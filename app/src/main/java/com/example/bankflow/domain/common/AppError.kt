@@ -35,4 +35,5 @@ sealed interface AppError {
 
     data class Unknown(val message: String? = null) : AppError
     data object BeneficiaryExists : AppError
+    data object BeneficiaryLimitReached : AppError
 }

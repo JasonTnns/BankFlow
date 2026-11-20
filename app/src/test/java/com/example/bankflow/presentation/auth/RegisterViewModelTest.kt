@@ -3,6 +3,7 @@ package com.example.bankflow.presentation.auth
 import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.usecase.RegisterUseCase
 import com.example.bankflow.presentation.auth.register.RegisterIntent
 import com.example.bankflow.presentation.auth.register.RegisterViewModel
@@ -127,5 +128,18 @@ class RegisterViewModelTest {
         viewModel.onIntent(RegisterIntent.Submit)
 
         assertEquals(AppError.NoConnection, viewModel.state.value.banner)
+    }
+
+    @Test
+    fun `a password rule from the server shows in the user's language under the password field`() {
+        repository.registerResult = AppResult.Failure(
+            AppError.Validation(issues = mapOf("password" to listOf(FieldIssue.PasswordTooShort(8)))),
+        )
+        fill()
+
+        viewModel.onIntent(RegisterIntent.Submit)
+
+        assertEquals(UiText.Res(R.string.issue_password_too_short, listOf(8)), viewModel.state.value.passwordError)
+        assertNull(viewModel.state.value.banner)
     }
 }

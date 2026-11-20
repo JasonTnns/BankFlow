@@ -226,6 +226,8 @@
     <string name="details_type">النوع</string>
     <string name="details_balance_after">الرصيد بعد المعاملة</string>
     <string name="details_reference">المرجع</string>
+    <string name="error_beneficiary_limit_reached">يمكنك حفظ ما يصل إلى %1$d مستلمًا. احذف أحدهم لإضافة مستلم آخر.</string>
+    <string name="issue_own_account">هذا أحد حساباتك</string>
 
     <!-- Transfer flow -->
     <string name="transfer_title">إرسال أموال</string>

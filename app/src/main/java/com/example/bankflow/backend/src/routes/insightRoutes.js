@@ -7,6 +7,7 @@ const config = require('../config');
 const { validate } = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
 const { MAX_RANGE_DAYS } = require('../services/insightsService');
+const { IssueCode } = require('../errors');
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -26,11 +27,16 @@ const summaryQuerySchema = z
       .regex(/^[A-Z]{3}$/, 'Currency must be a 3-letter code')
       .default(config.banking.defaultCurrency),
   })
-  .refine((q) => q.from < q.to, { message: '"from" must be before "to"', path: ['from'] })
-  .refine((q) => new Date(q.to) - new Date(q.from) <= MAX_RANGE_DAYS * DAY_MS, {
-    message: `The range can be at most ${MAX_RANGE_DAYS} days`,
-    path: ['to'],
-  });
+  .refine((q) => q.from < q.to, {
+      message: '"from" must be before "to"',
+      path: ['from'],
+      params: { code: IssueCode.RANGE_INVALID },
+    })
+    .refine((q) => new Date(q.to) - new Date(q.from) <= MAX_RANGE_DAYS * DAY_MS, {
+      message: `The range can be at most ${MAX_RANGE_DAYS} days`,
+      path: ['to'],
+      params: { code: IssueCode.RANGE_TOO_LONG },
+    });
 
 function createInsightsRoutes({ insightsService, requireAuth }) {
   const router = express.Router();

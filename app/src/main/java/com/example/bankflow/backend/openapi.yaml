@@ -128,6 +128,11 @@ paths:
         '401': { $ref: '#/components/responses/Unauthorized' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409':
+          '422':
+            description: The user already has the maximum of 50 saved recipients (`BENEFICIARY_LIMIT_REACHED`)
+            content:
+              application/json:
+                schema: { $ref: '#/components/schemas/Error' }
           description: Already saved (`BENEFICIARY_EXISTS`)
           content:
             application/json:
@@ -592,7 +597,9 @@ components:
 
   responses:
     ValidationError:
-      description: Invalid input (`VALIDATION_ERROR`). `details.fields` maps each field name to its messages.
+      description: |
+        Invalid input (`VALIDATION_ERROR`). `details` is a ValidationDetails: English messages per field
+        in `fields`, and codes with parameters in `issues`.
       content:
         application/json:
           schema: { $ref: '#/components/schemas/Error' }
@@ -602,7 +609,10 @@ components:
               message: Some fields are invalid
               details:
                 fields:
-                  amountMinor: [Amount must be a whole number of cents]
+                  password: [ Password must be at least 8 characters ]
+                issues:
+                  password:
+                    - { code: TOO_SHORT, params: { min: 8 } }
     Unauthorized:
       description: |
         Missing or invalid token (`UNAUTHORIZED`), or the access token expired (`TOKEN_EXPIRED`).
@@ -702,6 +712,66 @@ components:
                 - CURRENCY_MISMATCH
                 - IDEMPOTENCY_CONFLICT
                 - INTERNAL_ERROR
+                - BENEFICIARY_LIMIT_REACHED
+            IssueCode:
+              type: string
+              description: |
+                Why one field was rejected. Clients translate these. `params` carries the numbers a message needs
+                (for example `{ "min": 8 }` for TOO_SHORT).
+              enum:
+                - REQUIRED
+                - INVALID_TYPE
+                - NOT_INTEGER
+                - TOO_SHORT
+                - TOO_LONG
+                - TOO_SMALL
+                - TOO_LARGE
+                - INVALID_EMAIL
+                - INVALID_UUID
+                - INVALID_DATETIME
+                - INVALID_FORMAT
+                - INVALID_OPTION
+                - PASSWORD_NEEDS_LETTER_AND_NUMBER
+                - PASSWORD_TOO_LONG
+                - OWN_ACCOUNT
+                - DESTINATION_CONFLICT
+                - RANGE_INVALID
+                - RANGE_TOO_LONG
+                - AMOUNT_RANGE_INVALID
+                - NOTHING_TO_UPDATE
+                - INVALID_CURSOR
+                - INVALID
+
+            ValidationIssue:
+              type: object
+              required: [ code ]
+              properties:
+                code: { $ref: '#/components/schemas/IssueCode' }
+                params:
+                  type: object
+                  additionalProperties: true
+
+            ValidationDetails:
+              type: object
+              description: |
+                The `details` of a `VALIDATION_ERROR`. Entry i of `fields[name]` (English text) and entry i of
+                `issues[name]` (code) describe the same problem.
+              properties:
+                fields:
+                  type: object
+                  additionalProperties: { type: array, items: { type: string } }
+                issues:
+                  type: object
+                  additionalProperties:
+                    type: array
+                    items: { $ref: '#/components/schemas/ValidationIssue' }
+                form:
+                  type: array
+                  description: Problems with the request body as a whole
+                  items: { type: string }
+                formIssues:
+                  type: array
+                  items: { $ref: '#/components/schemas/ValidationIssue' }
             message:
               type: string
               description: Safe to display to the user

@@ -5,6 +5,7 @@ const { z } = require('zod');
 
 const { validate } = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
+const { IssueCode } = require('../errors');
 
 const updateProfileSchema = z
   .object({
@@ -16,9 +17,10 @@ const updateProfileSchema = z
       .optional(),
     themePreference: z.enum(['SYSTEM', 'LIGHT', 'DARK']).optional(),
   })
-  .refine((body) => body.fullName !== undefined || body.themePreference !== undefined, {
-    message: 'Provide fullName or themePreference',
-  });
+    .refine((body) => body.fullName !== undefined || body.themePreference !== undefined, {
+      message: 'Provide fullName or themePreference',
+      params: { code: IssueCode.NOTHING_TO_UPDATE },
+    });
 
 function createProfileRoutes({ profileService, requireAuth }) {
   const router = express.Router();

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.FieldIssue
+import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
 
 fun AppError.userText(): UiText = when (this) {
     AppError.NoConnection -> UiText.Res(R.string.error_no_connection)
@@ -17,6 +18,8 @@ fun AppError.userText(): UiText = when (this) {
         ?: UiText.Res(R.string.error_validation)
     AppError.NotFound -> UiText.Res(R.string.error_not_found)
     AppError.BeneficiaryExists -> UiText.Res(R.string.error_beneficiary_exists)
+    AppError.BeneficiaryLimitReached ->
+        UiText.Res(R.string.error_beneficiary_limit_reached, listOf(AddBeneficiaryUseCase.MAX_BENEFICIARIES))
     AppError.InsufficientFunds -> UiText.Res(R.string.error_insufficient_funds)
     is AppError.LimitExceeded -> remaining
         ?.let { UiText.Res(R.string.error_limit_exceeded_with_remaining, listOf(it)) }
@@ -32,6 +35,7 @@ fun AppError.userText(): UiText = when (this) {
 fun AppError.userMessage(): String = userText().resolve()
 
 fun FieldIssue.toText(): UiText = when (this) {
+    FieldIssue.OwnAccount -> UiText.Res(R.string.issue_own_account)
     FieldIssue.EmailRequired -> UiText.Res(R.string.issue_email_required)
     FieldIssue.EmailInvalid -> UiText.Res(R.string.issue_email_invalid)
     FieldIssue.PasswordRequired -> UiText.Res(R.string.issue_password_required)

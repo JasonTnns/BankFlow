@@ -29,6 +29,41 @@ const ErrorCode = Object.freeze({
   INTERNAL_ERROR: 'INTERNAL_ERROR',
 });
 
+const IssueCode = Object.freeze({
+  REQUIRED: 'REQUIRED',
+  INVALID_TYPE: 'INVALID_TYPE',
+  NOT_INTEGER: 'NOT_INTEGER',
+  TOO_SHORT: 'TOO_SHORT',
+  TOO_LONG: 'TOO_LONG',
+  TOO_SMALL: 'TOO_SMALL',
+  TOO_LARGE: 'TOO_LARGE',
+  INVALID_EMAIL: 'INVALID_EMAIL',
+  INVALID_UUID: 'INVALID_UUID',
+  INVALID_DATETIME: 'INVALID_DATETIME',
+  INVALID_FORMAT: 'INVALID_FORMAT',
+  INVALID_OPTION: 'INVALID_OPTION',
+  PASSWORD_NEEDS_LETTER_AND_NUMBER: 'PASSWORD_NEEDS_LETTER_AND_NUMBER',
+  PASSWORD_TOO_LONG: 'PASSWORD_TOO_LONG',
+  OWN_ACCOUNT: 'OWN_ACCOUNT',
+  DESTINATION_CONFLICT: 'DESTINATION_CONFLICT',
+  RANGE_INVALID: 'RANGE_INVALID',
+  RANGE_TOO_LONG: 'RANGE_TOO_LONG',
+  AMOUNT_RANGE_INVALID: 'AMOUNT_RANGE_INVALID',
+  NOTHING_TO_UPDATE: 'NOTHING_TO_UPDATE',
+  INVALID_CURSOR: 'INVALID_CURSOR',
+  INVALID: 'INVALID',
+});
+
+function validationDetails(items) {
+  const fields = {};
+  const issues = {};
+  for (const { field, code, message, params } of items) {
+    (fields[field] ??= []).push(message);
+    (issues[field] ??= []).push(params ? { code, params } : { code });
+  }
+  return { fields, issues };
+}
+
 class AppError extends Error {
 
   constructor(status, code, message, details) {
@@ -52,6 +87,12 @@ class AppError extends Error {
 const Errors = Object.freeze({
   validation: (message = 'Invalid request', details) =>
     new AppError(400, ErrorCode.VALIDATION_ERROR, message, details),
+      beneficiaryLimitReached: () =>
+        new AppError(
+          422,
+          ErrorCode.BENEFICIARY_LIMIT_REACHED,
+          'You have reached the maximum number of saved recipients'
+        ),
 
   unauthorized: (message = 'Authentication required') =>
     new AppError(401, ErrorCode.UNAUTHORIZED, message),
@@ -77,6 +118,7 @@ const Errors = Object.freeze({
 
   beneficiaryExists: () =>
     new AppError(409, ErrorCode.BENEFICIARY_EXISTS, 'This recipient is already saved'),
+      BENEFICIARY_LIMIT_REACHED: 'BENEFICIARY_LIMIT_REACHED',
 
   idempotencyConflict: () =>
     new AppError(

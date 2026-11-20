@@ -2,7 +2,7 @@
 
 
 const { inImmediateTx } = require('../db');
-const { Errors } = require('../errors');
+const { Errors, IssueCode, validationDetails } = require('../errors');
 const { newId } = require('../utils/ids');
 const { shortName, maskAccountNumber } = require('./accountService');
 
@@ -47,18 +47,18 @@ function createBeneficiaryService(db) {
         .get(accountNumber);
       if (!target) throw Errors.notFound('No account found with that number');
 
-      if (target.user_id === userId) {
-        throw Errors.validation('That is one of your own accounts', {
-          fields: { accountNumber: ['That is one of your own accounts'] },
-        });
-      }
+            if (target.user_id === userId) {
+              const message = 'That is one of your own accounts';
+              throw Errors.validation(
+                message,
+                validationDetails([{ field: 'accountNumber', code: IssueCode.OWN_ACCOUNT, message }])
+              );
+            }
 
-      const { count } = db
-        .prepare('SELECT COUNT(*) AS count FROM beneficiaries WHERE user_id = ?')
-        .get(userId);
-      if (count >= MAX_BENEFICIARIES) {
-        throw Errors.validation(`You can save up to ${MAX_BENEFICIARIES} recipients`);
-      }
+            const { count } = db
+              .prepare('SELECT COUNT(*) AS count FROM beneficiaries WHERE user_id = ?')
+              .get(userId);
+            if (count >= MAX_BENEFICIARIES) throw Errors.beneficiaryLimitReached();
 
       const existing = db
         .prepare('SELECT 1 FROM beneficiaries WHERE user_id = ? AND account_number = ?')

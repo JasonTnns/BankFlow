@@ -136,13 +136,13 @@ class RemoteDataSourceTest {
     }
 
     @Test
-    fun `validation errors carry per-field messages`() {
+    fun `validation errors without codes keep the server's messages, under the form's field`() {
         val error = errorFor(
             HttpStatusCode.BadRequest,
             errorJson("VALIDATION_ERROR", "Some fields are invalid", """{"fields":{"amountMinor":["Too small","Not whole"]}}"""),
         ) as AppError.Validation
 
-        assertEquals(mapOf("amountMinor" to listOf("Too small", "Not whole")), error.fieldErrors)
+        assertEquals(mapOf("amount" to listOf("Too small", "Not whole")), error.fieldErrors)
     }
 
     @Test

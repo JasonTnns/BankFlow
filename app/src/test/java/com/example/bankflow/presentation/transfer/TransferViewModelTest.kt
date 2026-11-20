@@ -2,6 +2,7 @@ package com.example.bankflow.presentation.transfer
 
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.AccountStatus
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.model.TransferDestination
@@ -643,5 +644,19 @@ class TransferViewModelTest {
 
         assertEquals(TransferStep.REVIEW, viewModel.state.value.step)
         assertEquals(listOf("200000000001"), accounts.recipientLookups)
+    }
+
+    @Test
+    fun `an amount rule from the server shows under the amount field`() {
+        transfers.script(
+            AppResult.Failure(AppError.Validation(issues = mapOf("amount" to listOf(FieldIssue.AmountTooLarge)))),
+        )
+        val viewModel = viewModel()
+        viewModel.review()
+
+        viewModel.onIntent(TransferIntent.Confirm)
+
+        assertEquals(TransferStep.FAILED, viewModel.state.value.step)
+        assertTrue(viewModel.state.value.failure is AppError.Validation)
     }
 }

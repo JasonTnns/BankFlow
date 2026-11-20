@@ -157,7 +157,7 @@ describe('beneficiaries API', () => {
 
   test('everything requires authentication', async () => {
     expect((await request(app).get('/api/v1/beneficiaries')).status).toBe(401);
-    expect((await request(app).post('/api/v1/beneficiaries').send({})).status).toBe(401);
-    expect((await request(app).delete(`/api/v1/beneficiaries/${crypto.randomUUID()}`)).status).toBe(401);
+        expect(over.status).toBe(422);
+        expect(over.body.error.code).toBe('BENEFICIARY_LIMIT_REACHED');
   });
 });

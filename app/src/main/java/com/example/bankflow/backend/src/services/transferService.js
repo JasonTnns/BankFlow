@@ -18,7 +18,7 @@
  */
 
 const { inImmediateTx } = require('../db');
-const { Errors } = require('../errors');
+const { Errors, IssueCode, validationDetails } = require('../errors');
 const { postDoubleEntry } = require('../ledger');
 const { newId, nowIso, startOfUtcDayIso } = require('../utils/ids');
 const { isValidPositiveMinor } = require('../utils/money');
@@ -126,9 +126,13 @@ function createTransferService(db) {
     } = input;
 
     // Defence in depth: the route already validated this.
-    if (!isValidPositiveMinor(amountMinor)) {
-      throw Errors.validation('Amount must be a positive whole number of cents');
-    }
+        if (!isValidPositiveMinor(amountMinor)) {
+          const message = 'Amount must be a positive whole number of cents';
+          throw Errors.validation(
+            message,
+            validationDetails([{ field: 'amountMinor', code: IssueCode.INVALID, message }])
+          );
+        }
 
     const outcome = inImmediateTx(db, () => {
       // --- Authorization: the source must be one of the caller's accounts.

@@ -7,7 +7,7 @@ const { z } = require('zod');
 
 const config = require('../config');
 const { CATEGORIES } = require('../constants');
-const { Errors } = require('../errors');
+const { Errors, IssueCode } = require('../errors');
 const { validate } = require('../middleware/validate');
 const { asyncHandler } = require('../middleware/errorHandler');
 
@@ -36,17 +36,22 @@ const transactionQuerySchema = z
     minAmountMinor: minorAmount.optional(),
     maxAmountMinor: minorAmount.optional(),
   })
-  .refine((q) => !q.from || !q.to || q.from <= q.to, {
-    message: '"from" must not be after "to"',
-    path: ['from'],
-  })
-  .refine(
-    (q) =>
-      q.minAmountMinor === undefined ||
-      q.maxAmountMinor === undefined ||
-      q.minAmountMinor <= q.maxAmountMinor,
-    { message: 'minAmountMinor must not exceed maxAmountMinor', path: ['minAmountMinor'] }
-  );
+    .refine((q) => !q.from || !q.to || q.from <= q.to, {
+      message: '"from" must not be after "to"',
+      path: ['from'],
+      params: { code: IssueCode.RANGE_INVALID },
+    })
+    .refine(
+      (q) =>
+        q.minAmountMinor === undefined ||
+        q.maxAmountMinor === undefined ||
+        q.minAmountMinor <= q.maxAmountMinor,
+      {
+        message: 'minAmountMinor must not exceed maxAmountMinor',
+        path: ['minAmountMinor'],
+        params: { code: IssueCode.AMOUNT_RANGE_INVALID },
+      }
+    );
 
 const recipientLookupSchema = z.object({
   accountNumber: z

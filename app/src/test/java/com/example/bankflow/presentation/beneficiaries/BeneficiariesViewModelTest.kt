@@ -1,10 +1,13 @@
 package com.example.bankflow.presentation.beneficiaries
 
+import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.AppResult
+import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
 import com.example.bankflow.domain.usecase.DeleteBeneficiaryUseCase
 import com.example.bankflow.domain.usecase.GetBeneficiariesUseCase
+import com.example.bankflow.presentation.common.UiText
 import com.example.bankflow.testutil.MainDispatcherRule
 import com.example.bankflow.testutil.StubBeneficiaryRepository
 import com.example.bankflow.testutil.testBeneficiary
@@ -293,5 +296,31 @@ class BeneficiariesViewModelTest {
         viewModel.onIntent(BeneficiariesIntent.NumberChanged("200000000001".toArabicIndic()))
 
         assertEquals("200000000001", viewModel.state.value.addForm?.accountNumber)
+    }
+
+    @Test
+    fun `reaching the limit shows in the dialog's banner, not under a field`() {
+        repository.addResult = AppResult.Failure(AppError.BeneficiaryLimitReached)
+        val viewModel = viewModel()
+        viewModel.fillAdd()
+
+        viewModel.onIntent(BeneficiariesIntent.SaveNew)
+
+        val form = viewModel.state.value.addForm!!
+        assertEquals(AppError.BeneficiaryLimitReached, form.banner)
+        assertNull(form.accountNumberError)
+    }
+
+    @Test
+    fun `an own-account rule from the server shows under the number field in the user's language`() {
+        repository.addResult = AppResult.Failure(
+            AppError.Validation(issues = mapOf("accountNumber" to listOf(FieldIssue.OwnAccount))),
+        )
+        val viewModel = viewModel()
+        viewModel.fillAdd()
+
+        viewModel.onIntent(BeneficiariesIntent.SaveNew)
+
+        assertEquals(UiText.Res(R.string.issue_own_account), viewModel.state.value.addForm?.accountNumberError)
     }
 }

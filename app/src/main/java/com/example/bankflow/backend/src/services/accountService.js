@@ -1,8 +1,7 @@
 'use strict';
 
 const config = require('../config');
-const { Errors } = require('../errors');
-
+const { Errors, IssueCode, validationDetails } = require('../errors');
 
 function encodeCursor(seq) {
   return Buffer.from(String(seq), 'utf8').toString('base64url');
@@ -10,9 +9,12 @@ function encodeCursor(seq) {
 
 function decodeCursor(cursor) {
   const seq = Number(Buffer.from(cursor, 'base64url').toString('utf8'));
-  if (!Number.isSafeInteger(seq) || seq <= 0) {
-    throw Errors.validation('Invalid cursor', { fields: { cursor: ['Invalid cursor'] } });
-  }
+    if (!Number.isSafeInteger(seq) || seq <= 0) {
+      throw Errors.validation(
+        'Invalid cursor',
+        validationDetails([{ field: 'cursor', code: IssueCode.INVALID_CURSOR, message: 'Invalid cursor' }])
+      );
+    }
   return seq;
 }
 

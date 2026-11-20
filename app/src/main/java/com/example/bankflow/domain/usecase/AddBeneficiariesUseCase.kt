@@ -29,6 +29,7 @@ class AddBeneficiaryUseCase(
     }
 
     companion object {
+        const val MAX_BENEFICIARIES = 50
         const val MAX_NICKNAME_LENGTH = 40
         private val ACCOUNT_NUMBER = Regex("""^\d{12}$""")
     }

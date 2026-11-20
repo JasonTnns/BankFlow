@@ -21,6 +21,7 @@ sealed interface FieldIssue {
     data object DestinationRequired : FieldIssue
     data object DestinationNotFound : FieldIssue
     data object DestinationIsSource : FieldIssue
+    data object OwnAccount : FieldIssue
     data class DescriptionTooLong(val max: Int) : FieldIssue
     data object NicknameRequired : FieldIssue
     data class NicknameTooLong(val max: Int) : FieldIssue

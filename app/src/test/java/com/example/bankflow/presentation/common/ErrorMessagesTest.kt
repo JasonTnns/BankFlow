@@ -4,6 +4,7 @@ import com.example.bankflow.R
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.model.Money
+import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
 import com.example.bankflow.presentation.transfer.transferFailureText
 import com.example.bankflow.presentation.transfer.unknownOutcomeText
 import org.junit.Assert.assertEquals
@@ -14,6 +15,7 @@ import org.junit.Test
 class ErrorMessagesTest {
 
     private val everyError = listOf(
+        AppError.BeneficiaryLimitReached,
         AppError.NoConnection, AppError.Timeout, AppError.Server(500), AppError.RateLimited,
         AppError.SessionExpired, AppError.InvalidCredentials, AppError.EmailTaken,
         AppError.Validation(), AppError.NotFound, AppError.BeneficiaryExists, AppError.InsufficientFunds,
@@ -93,6 +95,7 @@ class ErrorMessagesTest {
     @Test
     fun `every field issue has its own message`() {
         val everyIssue = listOf(
+            FieldIssue.OwnAccount,
             FieldIssue.EmailRequired, FieldIssue.EmailInvalid, FieldIssue.PasswordRequired,
             FieldIssue.PasswordTooShort(8), FieldIssue.PasswordNeedsLetterAndNumber, FieldIssue.PasswordTooLong,
             FieldIssue.NameRequired, FieldIssue.NameTooLong(100), FieldIssue.AmountRequired, FieldIssue.AmountInvalid,
@@ -105,5 +108,13 @@ class ErrorMessagesTest {
         val ids = everyIssue.map { (it.toText() as UiText.Res).id }
 
         assertEquals(ids.size, ids.toSet().size)
+    }
+
+    @Test
+    fun `the recipient limit names the number`() {
+        assertEquals(
+            UiText.Res(R.string.error_beneficiary_limit_reached, listOf(AddBeneficiaryUseCase.MAX_BENEFICIARIES)),
+            AppError.BeneficiaryLimitReached.userText(),
+        )
     }
 }
