@@ -9,7 +9,36 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.baselineprofile)
 }
+// ---- Release settings. Read from ~/.gradle/gradle.properties or environment variables, never the repository.
+fun secret(property: String, environment: String): String? =
+    providers.gradleProperty(property).orElse(providers.environmentVariable(environment)).orNull
 
+val bankflowKeystorePath = secret("bankflow.keystore.path", "BANKFLOW_KEYSTORE_PATH")
+val bankflowKeystorePassword = secret("bankflow.keystore.password", "BANKFLOW_KEYSTORE_PASSWORD")
+val bankflowKeyAlias = secret("bankflow.key.alias", "BANKFLOW_KEY_ALIAS")
+val bankflowKeyPassword = secret("bankflow.key.password", "BANKFLOW_KEY_PASSWORD")
+val releaseSigningReady = listOf(bankflowKeystorePath, bankflowKeystorePassword, bankflowKeyAlias, bankflowKeyPassword)
+    .all { !it.isNullOrBlank() }
+
+val bankflowApiBaseUrl: String =
+    providers.gradleProperty("bankflow.apiBaseUrl").getOrElse("https://api.bankflow.example/api/v1/")
+val bankflowVersionName: String = providers.gradleProperty("bankflow.versionName").getOrElse("1.0")
+val bankflowVersionCode: Int = providers.gradleProperty("bankflow.versionCode").orNull?.toIntOrNull() ?: 1
+
+// A release build must never go out unsigned or pointed at the placeholder server.
+gradle.taskGraph.whenReady {
+    if (hasTask(":app:assembleRelease") || hasTask(":app:bundleRelease")) {
+        val problems = buildList {
+            if (!bankflowApiBaseUrl.startsWith("https://")) add("bankflow.apiBaseUrl must start with https://")
+            if (!bankflowApiBaseUrl.endsWith("/")) add("bankflow.apiBaseUrl must end with /")
+            if (bankflowApiBaseUrl.contains("bankflow.example")) add("bankflow.apiBaseUrl is still the placeholder")
+            if (!releaseSigningReady) add("signing is not configured (bankflow.keystore.*, bankflow.key.*)")
+        }
+        if (problems.isNotEmpty()) {
+            throw GradleException("Release build refused:\n - " + problems.joinToString("\n - "))
+        }
+    }
+}
 android {
     namespace = "com.example.bankflow"
     compileSdk = 35
@@ -18,9 +47,19 @@ android {
         applicationId = "com.example.bankflow"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = bankflowVersionCode
+        versionName = bankflowVersionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    signingConfigs {
+        if (releaseSigningReady) {
+            create("release") {
+                storeFile = file(bankflowKeystorePath!!)
+                storePassword = bankflowKeystorePassword
+                keyAlias = bankflowKeyAlias
+                keyPassword = bankflowKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -31,7 +70,8 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            buildConfigField("String", "API_BASE_URL", "\"https://api.bankflow.example/api/v1/\"")
+            buildConfigField("String", "API_BASE_URL", "\"$bankflowApiBaseUrl\"")
+            if (releaseSigningReady) signingConfig = signingConfigs.getByName("release")
         }
         create("minified") {
             initWith(getByName("debug"))

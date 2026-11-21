@@ -1,5 +1,10 @@
 <resources>
     <!-- Actions -->
+    <string name="error_password_incorrect">كلمة المرور غير صحيحة.</string>
+    <string name="delete_account_action">حذف الحساب</string>
+    <string name="delete_account_title">حذف حسابك؟</string>
+    <string name="delete_account_message">سيؤدي هذا إلى إغلاق حساباتك وإزالة بياناتك الشخصية والمستلمين المحفوظين. يُحتفظ بسجل معاملاتك دون اسمك كما تقتضي السجلات المالية. وفي هذا التطبيق التجريبي يُعاد أي رصيد متبقٍّ إلى البنك. لا يمكن التراجع عن ذلك.</string>
+    <string name="delete_account_confirm">حذف حسابي</string>
     <string name="action_back">رجوع</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_save">حفظ</string>

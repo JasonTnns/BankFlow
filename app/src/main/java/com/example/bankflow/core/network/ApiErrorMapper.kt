@@ -35,6 +35,7 @@ internal object ApiErrorMapper {
             "UNAUTHORIZED", "TOKEN_EXPIRED", "INVALID_REFRESH_TOKEN" -> AppError.SessionExpired
             "INVALID_CREDENTIALS" -> AppError.InvalidCredentials
             "FORBIDDEN", "NOT_FOUND" -> AppError.NotFound
+            "PASSWORD_INCORRECT" -> AppError.PasswordIncorrect
             "EMAIL_TAKEN" -> AppError.EmailTaken
             "BENEFICIARY_EXISTS" -> AppError.BeneficiaryExists
             "BENEFICIARY_LIMIT_REACHED" -> AppError.BeneficiaryLimitReached

@@ -14,7 +14,7 @@ class ProfileRepositoryImpl(
     private val remote: ProfileRemoteDataSource,
     private val sessionStore: SessionStore,
 ) : ProfileRepository {
-
+    override suspend fun deleteAccount(password: String): AppResult<Unit> = remote.deleteAccount(password)
     override suspend fun getProfile(): AppResult<Profile> = remote.getProfile().syncSession()
 
     override suspend fun updateProfile(

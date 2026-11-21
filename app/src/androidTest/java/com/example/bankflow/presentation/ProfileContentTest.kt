@@ -14,6 +14,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.bankflow.domain.common.AppError
 import com.example.bankflow.domain.model.ThemePreference
+import com.example.bankflow.presentation.profile.DeleteAccountForm
 import com.example.bankflow.presentation.profile.NameEdit
 import com.example.bankflow.presentation.profile.ProfileContent
 import com.example.bankflow.presentation.profile.ProfileIntent
@@ -223,5 +224,58 @@ class ProfileContentTest {
 
         assertEquals(0, logouts)
         composeRule.onNodeWithText("Log out?").assertDoesNotExist()
+    }
+
+    // ---------------------------------------------------------------- deleting the account
+
+    @Test
+    fun deleteAccountOpensTheDialogFirst() {
+        show(loaded)
+
+        composeRule.onNodeWithTag("profile_delete").performScrollTo().performClick()
+
+        assertEquals(listOf(ProfileIntent.OpenDelete), intents)
+    }
+
+    @Test
+    fun theDialogExplainsWhatHappensAndSendsThePasswordAndConfirmation() {
+        show(loaded.copy(deleteForm = DeleteAccountForm()))
+
+        composeRule.onNodeWithText("This closes your accounts", substring = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("delete_password").performTextInput("Passw0rd123")
+        composeRule.onNodeWithTag("delete_account_confirm").performClick()
+
+        assertEquals(
+            listOf(ProfileIntent.DeletePasswordChanged("Passw0rd123"), ProfileIntent.ConfirmDelete),
+            intents,
+        )
+    }
+
+    @Test
+    fun aWrongPasswordShowsUnderTheField() {
+        show(loaded.copy(deleteForm = DeleteAccountForm(
+            password = "x",
+            error = AppError.PasswordIncorrect
+        )
+        ))
+
+        composeRule.onNodeWithText("Incorrect password.").assertIsDisplayed()
+        composeRule.onNodeWithTag("delete_error").assertDoesNotExist()
+    }
+
+    @Test
+    fun aNetworkProblemShowsInTheBanner() {
+        show(loaded.copy(deleteForm = DeleteAccountForm(error = AppError.NoConnection)))
+
+        composeRule.onNodeWithTag("delete_error").assertIsDisplayed()
+    }
+
+    @Test
+    fun whileDeletingTheDialogIsLocked() {
+        show(loaded.copy(deleteForm = DeleteAccountForm(password = "x", isDeleting = true)))
+
+        composeRule.onNodeWithTag("delete_account_confirm").assertIsNotEnabled()
+        composeRule.onNodeWithTag("delete_account_cancel").assertIsNotEnabled()
+        composeRule.onNodeWithTag("delete_password").assertIsNotEnabled()
     }
 }

@@ -36,4 +36,6 @@ sealed interface AppError {
     data class Unknown(val message: String? = null) : AppError
     data object BeneficiaryExists : AppError
     data object BeneficiaryLimitReached : AppError
+    /** A password confirmation (account deletion) was wrong. Not the same as a failed login. */
+    data object PasswordIncorrect : AppError
 }

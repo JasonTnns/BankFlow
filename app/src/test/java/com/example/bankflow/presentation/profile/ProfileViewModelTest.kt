@@ -23,8 +23,19 @@ class ProfileViewModelTest {
 
     private val repository = StubProfileRepository()
 
-    private fun viewModel() = ProfileViewModel(GetProfileUseCase(repository), UpdateProfileUseCase(repository))
+    private val auth = StubAuthRepository()
 
+    private fun viewModel() = ProfileViewModel(
+        GetProfileUseCase(repository),
+        UpdateProfileUseCase(repository),
+        DeleteAccountUseCase(repository),
+        LogoutUseCase(auth),
+    )
+
+    private fun ProfileViewModel.fillDelete(password: String = "Passw0rd123") {
+        onIntent(ProfileIntent.OpenDelete)
+        onIntent(ProfileIntent.DeletePasswordChanged(password))
+    }
     private fun ProfileViewModel.theme() = state.value.profile?.user?.themePreference
     private fun ProfileViewModel.name() = state.value.profile?.user?.fullName
 
@@ -341,6 +352,137 @@ class ProfileViewModelTest {
 
         assertNull(viewModel.state.value.nameEdit)
         assertTrue(repository.updates.isEmpty())
+    }
+
+    // ---------------------------------------------------------------- deleting the account
+
+    @Test
+    fun `deleting asks for the password first, nothing is sent yet`() {
+        val viewModel = viewModel()
+
+        viewModel.onIntent(ProfileIntent.OpenDelete)
+
+        assertNotNull(viewModel.state.value.deleteForm)
+        assertTrue(repository.deleteCalls.isEmpty())
+    }
+
+    @Test
+    fun `an empty password is reported under the field, with no request and no sign-out`() {
+        val viewModel = viewModel()
+        viewModel.onIntent(ProfileIntent.OpenDelete)
+
+        viewModel.onIntent(ProfileIntent.ConfirmDelete)
+
+        val form = viewModel.state.value.deleteForm!!
+        assertNotNull(form.passwordError)
+        assertNull(form.banner)
+        assertTrue(repository.deleteCalls.isEmpty())
+        assertEquals(0, auth.logoutCalls)
+    }
+
+    @Test
+    fun `the right password deletes the account and signs the user out`() {
+        val viewModel = viewModel()
+        viewModel.fillDelete("Passw0rd123")
+
+        viewModel.onIntent(ProfileIntent.ConfirmDelete)
+
+        assertEquals(listOf("Passw0rd123"), repository.deleteCalls)
+        assertEquals(1, auth.logoutCalls)
+        assertNull(viewModel.state.value.deleteForm)
+    }
+
+    @Test
+    fun `a wrong password shows under the field, keeps the dialog and does not sign out`() {
+        repository.deleteError = AppError.PasswordIncorrect
+        val viewModel = viewModel()
+        viewModel.fillDelete("wrong")
+
+        viewModel.onIntent(ProfileIntent.ConfirmDelete)
+
+        val form = viewModel.state.value.deleteForm!!
+        assertEquals(UiText.Res(R.string.error_password_incorrect), form.passwordError)
+        assertNull(form.banner)
+        assertFalse(form.isDeleting)
+        assertEquals("wrong", form.password)
+        assertEquals(0, auth.logoutCalls)
+    }
+
+    @Test
+    fun `a network failure shows as a banner and nothing is lost`() {
+        repository.deleteError = AppError.NoConnection
+        val viewModel = viewModel()
+        viewModel.fillDelete()
+
+        viewModel.onIntent(ProfileIntent.ConfirmDelete)
+
+        assertEquals(AppError.NoConnection, viewModel.state.value.deleteForm?.banner)
+        assertEquals(0, auth.logoutCalls)
+    }
+
+    @Test
+    fun `typing clears the error`() {
+        repository.deleteError = AppError.PasswordIncorrect
+        val viewModel = viewModel()
+        viewModel.fillDelete("wrong")
+        viewModel.onIntent(ProfileIntent.ConfirmDelete)
+
+        viewModel.onIntent(ProfileIntent.DeletePasswordChanged("wrong2"))
+
+        assertNull(viewModel.state.value.deleteForm?.passwordError)
+    }
+
+    @Test
+    fun `tapping Delete repeatedly sends one request`() {
+        val gate = CompletableDeferred<Unit>().also { repository.deleteGate = it }
+        val viewModel = viewModel()
+        viewModel.fillDelete()
+
+        repeat(3) { viewModel.onIntent(ProfileIntent.ConfirmDelete) }
+
+        assertEquals(1, repository.deleteCalls.size)
+        assertTrue(viewModel.state.value.isUpdating)
+        gate.complete(Unit)
+        assertEquals(1, auth.logoutCalls)
+    }
+
+    @Test
+    fun `while deleting, the dialog cannot be dismissed and nothing else can be changed`() {
+        val gate = CompletableDeferred<Unit>().also { repository.deleteGate = it }
+        val viewModel = viewModel()
+        viewModel.fillDelete()
+        viewModel.onIntent(ProfileIntent.ConfirmDelete)
+
+        viewModel.onIntent(ProfileIntent.DismissDelete)
+        viewModel.onIntent(ProfileIntent.SelectTheme(ThemePreference.DARK))
+
+        assertNotNull(viewModel.state.value.deleteForm)
+        assertTrue(repository.updates.isEmpty())
+        gate.complete(Unit)
+    }
+
+    @Test
+    fun `the password field is limited, and cancelling closes the dialog without a request`() {
+        val viewModel = viewModel()
+        viewModel.fillDelete("x".repeat(300))
+        assertEquals(200, viewModel.state.value.deleteForm?.password?.length)
+
+        viewModel.onIntent(ProfileIntent.DismissDelete)
+
+        assertNull(viewModel.state.value.deleteForm)
+        assertTrue(repository.deleteCalls.isEmpty())
+    }
+
+    @Test
+    fun `the dialog cannot open while another change is in flight`() {
+        val gate = CompletableDeferred<Unit>().also { repository.updateGate = it }
+        val viewModel = viewModel()
+        viewModel.onIntent(ProfileIntent.SelectTheme(ThemePreference.DARK))
+
+        viewModel.onIntent(ProfileIntent.OpenDelete)
+
+        assertNull(viewModel.state.value.deleteForm)
+        gate.complete(Unit)
     }
 
     private fun testProfileRenamed(name: String) =

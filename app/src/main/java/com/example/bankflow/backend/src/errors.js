@@ -10,6 +10,7 @@ const ErrorCode = Object.freeze({
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   INVALID_REFRESH_TOKEN: 'INVALID_REFRESH_TOKEN',
+  PASSWORD_INCORRECT: 'PASSWORD_INCORRECT',
   FORBIDDEN: 'FORBIDDEN',
 
 
@@ -106,7 +107,8 @@ const Errors = Object.freeze({
 
   invalidRefreshToken: () =>
     new AppError(401, ErrorCode.INVALID_REFRESH_TOKEN, 'Session expired, please sign in again'),
-
+    // 403 on purpose: a 401 would make the mobile client try to refresh its session and retry.
+    passwordIncorrect: () => new AppError(403, ErrorCode.PASSWORD_INCORRECT, 'Incorrect password'),
   forbidden: (message = 'You do not have access to this resource') =>
     new AppError(403, ErrorCode.FORBIDDEN, message),
 

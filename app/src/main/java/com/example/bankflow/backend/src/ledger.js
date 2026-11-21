@@ -14,7 +14,21 @@
  */
 
 const { newId } = require('./utils/ids');
+const RESERVE_ACCOUNT_NUMBER = 'SYSTEM-RESERVE';
 
+/** The bank's own account: funds welcome bonuses and receives account-closure payouts. Created on first use. */
+function ensureReserveAccount(db, currency) {
+  const find = () => db.prepare('SELECT * FROM accounts WHERE account_number = ?').get(RESERVE_ACCOUNT_NUMBER);
+  let reserve = find();
+  if (!reserve) {
+    db.prepare(
+      `INSERT INTO accounts (id, user_id, kind, type, name, account_number, currency, balance_minor)
+       VALUES (?, NULL, 'SYSTEM', 'SYSTEM', 'Bank Reserve', ?, ?, 0)`
+    ).run(newId(), RESERVE_ACCOUNT_NUMBER, currency);
+    reserve = find();
+  }
+  return reserve;
+}
 /**
  * @param {import('better-sqlite3').Database} db
  * @param {object} p
@@ -56,4 +70,4 @@ function postDoubleEntry(db, { transferId, sourceAccountId, destinationAccountId
   return { sourceBalanceAfterMinor, destinationBalanceAfterMinor };
 }
 
-module.exports = { postDoubleEntry };
+module.exports = { postDoubleEntry, ensureReserveAccount, RESERVE_ACCOUNT_NUMBER };

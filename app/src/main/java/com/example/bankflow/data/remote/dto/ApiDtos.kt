@@ -223,3 +223,6 @@ data class UpdateProfileRequestDto(
     val fullName: String? = null,
     val themePreference: String? = null,
 )
+
+@Serializable
+data class DeleteAccountRequestDto(val password: String)

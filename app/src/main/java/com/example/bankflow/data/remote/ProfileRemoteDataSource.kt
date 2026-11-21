@@ -1,6 +1,8 @@
 package com.example.bankflow.data.remote
 
 import com.example.bankflow.core.network.apiCall
+import com.example.bankflow.core.network.apiCallUnit
+import com.example.bankflow.data.remote.dto.DeleteAccountRequestDto
 import com.example.bankflow.data.remote.dto.ProfileResponseDto
 import com.example.bankflow.data.remote.dto.UpdateProfileRequestDto
 import com.example.bankflow.data.remote.mapper.toDomain
@@ -8,6 +10,7 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.Profile
 import com.example.bankflow.domain.model.ThemePreference
 import io.ktor.client.HttpClient
+import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.patch
 import io.ktor.client.request.setBody
@@ -34,4 +37,11 @@ class ProfileRemoteDataSource(private val client: HttpClient) {
             },
             map = { it.profile.toDomain() },
         )
+
+    suspend fun deleteAccount(password: String): AppResult<Unit> = apiCallUnit {
+        client.delete("me") {
+            contentType(ContentType.Application.Json)
+            setBody(DeleteAccountRequestDto(password))
+        }
+    }
 }

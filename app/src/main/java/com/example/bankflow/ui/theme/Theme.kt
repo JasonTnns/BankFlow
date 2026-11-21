@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.example.bankflow.domain.model.ThemePreference
 
-private val LightColors = lightColorScheme(
+internal val LightColors = lightColorScheme(
     primary = BrandBlue,
     onPrimary = Color.White,
     primaryContainer = BrandBlueContainer,
@@ -29,7 +29,7 @@ private val LightColors = lightColorScheme(
     error = ErrorLight,
 )
 
-private val DarkColors = darkColorScheme(
+internal val DarkColors = darkColorScheme(
     primary = BrandBlueDark,
     onPrimary = Color(0xFF00315B),
     primaryContainer = BrandBlueContainerDark,

@@ -17,6 +17,17 @@ fun testProfile(name: String = "Alice Demo", theme: ThemePreference = ThemePrefe
 )
 
 class StubProfileRepository : ProfileRepository {
+
+    var deleteError: AppError? = null
+    var deleteGate: CompletableDeferred<Unit>? = null
+    val deleteCalls = mutableListOf<String>()
+
+    override suspend fun deleteAccount(password: String): AppResult<Unit> {
+        deleteCalls += password
+        deleteGate?.await()
+        deleteError?.let { return AppResult.Failure(it) }
+        return AppResult.Success(Unit)
+    }
     var profile: Profile = testProfile()
 
     /** null means "succeed with the current [profile]". */

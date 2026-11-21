@@ -1,19 +1,29 @@
 'use strict';
 
 /**
- * Process entry point: open the database, build the app, listen, and shut
- * down cleanly on Ctrl+C / SIGTERM.
+ * Process entry point: check the configuration, open the database, build the app, listen, and shut down
+ * cleanly on Ctrl+C / SIGTERM. A crash exits non-zero so a supervisor (systemd, Docker, ...) restarts it.
  */
 
 const config = require('./config');
 const { getDb, closeDb } = require('./db');
 const { createApp } = require('./app');
 
+config.assertDeployable();
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[fatal] unhandled rejection', reason);
+  process.exit(1);
+});
+process.on('uncaughtException', (error) => {
+  console.error('[fatal] uncaught exception', error);
+  process.exit(1);
+});
+
 const app = createApp({ db: getDb() });
 
 const server = app.listen(config.port, () => {
-  console.log(`BankFlow API listening on http://localhost:${config.port} (${config.env})`);
-  console.log(`Health check: http://localhost:${config.port}/health`);
+  console.log(`BankFlow API listening on port ${config.port} (${config.env})`);
 });
 
 function shutdown(signal) {

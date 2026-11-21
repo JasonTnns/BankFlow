@@ -135,8 +135,8 @@ fun ProfileContent(
             }
         }
     }
-
     state.nameEdit?.let { edit -> NameDialog(edit = edit, isUpdating = state.isUpdating, onIntent = onIntent) }
+    state.deleteForm?.let { form -> DeleteAccountDialog(form = form, onIntent = onIntent) }
 
     if (confirmLogout) {
         AlertDialog(
@@ -266,6 +266,15 @@ private fun ProfileBody(
                 .padding(16.dp)
                 .testTag("profile_logout"),
         ) { Text("Log out") }
+        TextButton(
+            onClick = { onIntent(ProfileIntent.OpenDelete) },
+            enabled = !state.isUpdating,
+            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+                .testTag("profile_delete"),
+        ) { Text(stringResource(R.string.delete_account_action)) }
     }
 }
 
@@ -406,4 +415,50 @@ private fun NameDialog(edit: NameEdit, isUpdating: Boolean, onIntent: (ProfileIn
             ) { Text("Cancel") }
         },
     )
+    @Composable
+    private fun DeleteAccountDialog(form: DeleteAccountForm, onIntent: (ProfileIntent) -> Unit) {
+        var passwordVisible by rememberSaveable { mutableStateOf(false) }
+
+        AlertDialog(
+            onDismissRequest = { if (!form.isDeleting) onIntent(ProfileIntent.DismissDelete) },
+            title = { Text(stringResource(R.string.delete_account_title)) },
+            text = {
+                Column(
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    form.banner?.let { ErrorBanner(it.userMessage(), Modifier.testTag("delete_error")) }
+                    Text(stringResource(R.string.delete_account_message), style = MaterialTheme.typography.bodyMedium)
+                    PasswordField(
+                        value = form.password,
+                        onValueChange = { onIntent(ProfileIntent.DeletePasswordChanged(it)) },
+                        visible = passwordVisible,
+                        onToggleVisibility = { passwordVisible = !passwordVisible },
+                        imeAction = ImeAction.Done,
+                        keyboardActions = KeyboardActions(onDone = { onIntent(ProfileIntent.ConfirmDelete) }),
+                        modifier = Modifier.testTag("delete_password"),
+                        enabled = !form.isDeleting,
+                        errorText = form.passwordError?.resolve(),
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { onIntent(ProfileIntent.ConfirmDelete) },
+                    enabled = !form.isDeleting,
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.testTag("delete_account_confirm"),
+                ) {
+                    Text(stringResource(if (form.isDeleting) R.string.action_saving else R.string.delete_account_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { onIntent(ProfileIntent.DismissDelete) },
+                    enabled = !form.isDeleting,
+                    modifier = Modifier.testTag("delete_account_cancel"),
+                ) { Text(stringResource(R.string.action_cancel)) }
+            },
+        )
+    }
 }

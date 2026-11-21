@@ -36,6 +36,7 @@ class StubAuthRepository : AuthRepository {
     }
 
     override suspend fun logout() {
+        logoutCalls++
         user.value = null
     }
 

@@ -742,6 +742,37 @@ components:
                 - INVALID_CURSOR
                 - INVALID
 
+            delete:
+              tags: [ Profile ]
+              summary: Close the account
+              description: |
+                Needs the account password. The ledger is permanent, so the user is anonymised: the login is removed
+                (the email can be registered again), sessions and saved recipients are deleted, accounts are closed,
+                and any remaining balance is paid out through the ledger back to the bank. Other people's history keeps
+                the transactions, with the counterparty shown as "Deleted user". A wrong password is `403
+                PASSWORD_INCORRECT` (not 401, so clients do not try to refresh the session). Rate limited per user.
+              security:
+                - bearerAuth: [ ]
+              requestBody:
+                required: true
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      required: [ password ]
+                      properties:
+                        password: { type: string, minLength: 1, maxLength: 200 }
+              responses:
+                '204':
+                  description: Account closed
+                '400': { $ref: '#/components/responses/ValidationError' }
+                '401': { $ref: '#/components/responses/Unauthorized' }
+                '403':
+                  description: Incorrect password (`PASSWORD_INCORRECT`)
+                  content:
+                    application/json:
+                      schema: { $ref: '#/components/schemas/Error' }
+                '429': { $ref: '#/components/responses/RateLimited' }
             ValidationIssue:
               type: object
               required: [ code ]

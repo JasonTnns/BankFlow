@@ -1,6 +1,11 @@
 <resources>
     <string name="app_name" translatable="false">BankFlow</string>
     <!-- Actions -->
+    <string name="error_password_incorrect">Incorrect password.</string>
+    <string name="delete_account_action">Delete account</string>
+    <string name="delete_account_title">Delete your account?</string>
+    <string name="delete_account_message">This closes your accounts and removes your personal details and saved recipients. Your transaction history is kept without your name, as financial records require. In this demo, any remaining balance is returned to the bank. This can\'t be undone.</string>
+    <string name="delete_account_confirm">Delete my account</string>
     <string name="action_back">Back</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_save">Save</string>

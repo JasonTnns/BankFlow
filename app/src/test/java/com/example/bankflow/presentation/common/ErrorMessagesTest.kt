@@ -15,6 +15,7 @@ import org.junit.Test
 class ErrorMessagesTest {
 
     private val everyError = listOf(
+        AppError.PasswordIncorrect,
         AppError.BeneficiaryLimitReached,
         AppError.NoConnection, AppError.Timeout, AppError.Server(500), AppError.RateLimited,
         AppError.SessionExpired, AppError.InvalidCredentials, AppError.EmailTaken,

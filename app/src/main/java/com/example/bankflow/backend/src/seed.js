@@ -214,6 +214,13 @@ function seedDatabase(db, { now = Date.now() } = {}) {
 
 if (require.main === module) {
   const dbPath = config.dbPath || path.join(__dirname, '..', 'data', 'bank.db');
+    if (!config.server.allowSeed) {
+      console.error(
+        'Refusing to run the seed script: it creates demo users with a known password and --reset deletes ' +
+          'the database. Set ALLOW_SEED=true only if you are sure this is not a real database.'
+      );
+      process.exit(1);
+    }
 
   if (process.argv.includes('--reset')) {
     for (const suffix of ['', '-wal', '-shm']) {

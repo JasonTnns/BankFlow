@@ -6,6 +6,7 @@ import com.example.bankflow.domain.common.AppResult
 import com.example.bankflow.domain.model.Money
 import com.example.bankflow.domain.model.ThemePreference
 import io.ktor.client.engine.mock.MockRequestHandler
+import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpMethod
 import io.ktor.http.content.TextContent
 import kotlinx.coroutines.runBlocking
@@ -99,5 +100,27 @@ class ProfileRemoteDataSourceTest {
         val result = source { throw IOException("offline") }.getProfile()
 
         assertEquals(AppError.NoConnection, (result as AppResult.Failure).error)
+    }
+
+    @Test
+    fun `deleting is a DELETE carrying the password, and a 204 is success`() = runBlocking {
+        var method: HttpMethod? = null
+        var body: String? = null
+        val result = source { request ->
+            method = request.method
+            body = (request.body as TextContent).text
+            respond("", HttpStatusCode.NoContent)
+        }.deleteAccount("Passw0rd123")
+
+        assertEquals(HttpMethod.Delete, method)
+        assertEquals("""{"password":"Passw0rd123"}""", body)
+        assertTrue(result is AppResult.Success)
+    }
+
+    @Test
+    fun `a wrong password is its own error, and does not look like an expired session`() = runBlocking {
+        val result = source { json(errorJson("PASSWORD_INCORRECT"), HttpStatusCode.Forbidden) }.deleteAccount("nope")
+
+        assertEquals(AppError.PasswordIncorrect, (result as AppResult.Failure).error)
     }
 }

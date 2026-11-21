@@ -7,6 +7,7 @@ import com.example.bankflow.domain.common.FieldIssue
 import com.example.bankflow.domain.usecase.AddBeneficiaryUseCase
 
 fun AppError.userText(): UiText = when (this) {
+    AppError.PasswordIncorrect -> UiText.Res(R.string.error_password_incorrect)
     AppError.NoConnection -> UiText.Res(R.string.error_no_connection)
     AppError.Timeout -> UiText.Res(R.string.error_timeout)
     is AppError.Server -> UiText.Res(R.string.error_server)
